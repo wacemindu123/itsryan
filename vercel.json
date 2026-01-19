@@ -1,12 +1,8 @@
 {
+  "buildCommand": null,
+  "outputDirectory": null,
   "functions": {
-    "api/submit.js": {
-      "maxDuration": 10
-    },
-    "api/send-calendly.js": {
-      "maxDuration": 10
-    },
-    "api/submissions.js": {
+    "api/*.js": {
       "maxDuration": 10
     }
   },

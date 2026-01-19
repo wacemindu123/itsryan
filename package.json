@@ -2,9 +2,6 @@
   "name": "free-tech-services",
   "version": "1.0.0",
   "description": "Website for free tech services to help small businesses scale",
-  "scripts": {
-    "build": "echo 'No build required'"
-  },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.4",
     "nodemailer": "^6.9.7"
