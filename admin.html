@@ -263,7 +263,7 @@
             <tbody>
               ${submissions.map(sub => `
                 <tr>
-                  <td class="date">${new Date(sub.submitted_at).toLocaleString()}</td>
+                  <td class="date">${new Date(sub.created_at).toLocaleString()}</td>
                   <td>${escapeHtml(sub.name)}</td>
                   <td>${escapeHtml(sub.email)}</td>
                   <td>${escapeHtml(sub.business)}</td>
@@ -299,7 +299,7 @@
       button.textContent = 'Sending...';
 
       try {
-        const response = await fetch('http://localhost:3001/api/send-calendly', {
+        const response = await fetch('/api/send-calendly', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
