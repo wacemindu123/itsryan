@@ -219,7 +219,7 @@
       container.innerHTML = '<div class="loading">Loading submissions...</div>';
 
       try {
-        const response = await fetch('http://localhost:3001/api/submissions');
+        const response = await fetch('/api/submissions');
         if (!response.ok) throw new Error('Failed to fetch');
         
         const submissions = await response.json();
@@ -230,7 +230,7 @@
         // Calculate today's submissions
         const today = new Date().toDateString();
         const todayCount = submissions.filter(sub => 
-          new Date(sub.submitted_at).toDateString() === today
+          new Date(sub.created_at).toDateString() === today
         ).length;
         document.getElementById('today-submissions').textContent = todayCount;
         
@@ -238,7 +238,7 @@
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         const weekCount = submissions.filter(sub => 
-          new Date(sub.submitted_at) >= weekAgo
+          new Date(sub.created_at) >= weekAgo
         ).length;
         document.getElementById('this-week').textContent = weekCount;
 
