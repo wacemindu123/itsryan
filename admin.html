@@ -211,6 +211,32 @@
         <div class="loading">Loading submissions...</div>
       </div>
     </div>
+
+    <h1 style="margin-top: 60px;">AI Class Signups</h1>
+    <p class="subtitle">All signups for Free AI Classes</p>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="total-class-signups">0</div>
+        <div class="stat-label">Total Signups</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="in-person-count">0</div>
+        <div class="stat-label">In-Person</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="virtual-count">0</div>
+        <div class="stat-label">Virtual</div>
+      </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadClassSignups()">Refresh Class Data</button>
+
+    <div class="submissions-table">
+      <div id="class-table-container">
+        <div class="loading">Loading class signups...</div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -326,6 +352,72 @@
 
     // Auto-refresh every 30 seconds
     setInterval(loadSubmissions, 30000);
+
+    async function loadClassSignups() {
+      const container = document.getElementById('class-table-container');
+      container.innerHTML = '<div class="loading">Loading class signups...</div>';
+
+      try {
+        const response = await fetch('/api/class-signups');
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const signups = await response.json();
+        
+        // Update stats
+        document.getElementById('total-class-signups').textContent = signups.length;
+        
+        const inPersonCount = signups.filter(s => s.format === 'in-person').length;
+        const virtualCount = signups.filter(s => s.format === 'virtual').length;
+        document.getElementById('in-person-count').textContent = inPersonCount;
+        document.getElementById('virtual-count').textContent = virtualCount;
+
+        // Build table
+        if (signups.length === 0) {
+          container.innerHTML = '<div class="loading">No class signups yet</div>';
+          return;
+        }
+
+        const table = `
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Business</th>
+                <th>Format</th>
+                <th>Experience</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${signups.map(s => `
+                <tr>
+                  <td class="date">${new Date(s.created_at).toLocaleString()}</td>
+                  <td>${escapeHtml(s.name)}</td>
+                  <td>${escapeHtml(s.email)}</td>
+                  <td>${escapeHtml(s.phone)}</td>
+                  <td>${escapeHtml(s.business || '-')}</td>
+                  <td>${escapeHtml(s.format)}</td>
+                  <td>${escapeHtml(s.experience)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+        
+        container.innerHTML = table;
+      } catch (error) {
+        console.error('Error:', error);
+        container.innerHTML = '<div class="error">Failed to load class signups.</div>';
+      }
+    }
+
+    // Load class signups on page load
+    loadClassSignups();
+    
+    // Auto-refresh class signups every 30 seconds
+    setInterval(loadClassSignups, 30000);
   </script>
 </body>
 </html>
