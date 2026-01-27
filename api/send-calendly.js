@@ -1,14 +1,8 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
+const resend = new Resend(process.env.RESEND_API_KEY);
 const CALENDLY_LINK = process.env.CALENDLY_LINK || 'https://calendly.com/ryansmallbussinessdoctor/15min';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 module.exports = async function handler(req, res) {
   // Set CORS headers
@@ -32,24 +26,25 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Email and name are required' });
   }
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Schedule Your Free Tech Consultation',
-    html: `
-      <h2>Hi ${name},</h2>
-      <p>Thank you for your interest in scaling your business with AI and technology!</p>
-      <p>I'd love to discuss how I can help you overcome the challenges you're facing.</p>
-      <p>Please schedule a free consultation using the link below:</p>
-      <p><a href="${CALENDLY_LINK}" style="display: inline-block; padding: 12px 24px; background-color: #0071e3; color: white; text-decoration: none; border-radius: 5px;">Schedule a Meeting</a></p>
-      <p>Looking forward to speaking with you!</p>
-      <p>Best regards,<br>Ryan</p>
-    `
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: 'Email sent successfully' });
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Schedule Your Free Tech Consultation',
+      html: `
+        <h2>Hi ${name},</h2>
+        <p>Thank you for your interest in scaling your business with AI and technology!</p>
+        <p>I'd love to discuss how I can help you overcome the challenges you're facing.</p>
+        <p>Please schedule a free consultation using the link below:</p>
+        <p><a href="${CALENDLY_LINK}" style="display: inline-block; padding: 12px 24px; background-color: #0071e3; color: white; text-decoration: none; border-radius: 5px;">Schedule a Meeting</a></p>
+        <p>Looking forward to speaking with you!</p>
+        <p>Best regards,<br>Ryan</p>
+      `
+    });
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, message: 'Email sent successfully', data });
   } catch (error) {
     console.error('Error sending email:', error);
     res.status(500).json({ error: 'Failed to send email' });
