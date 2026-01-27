@@ -49,3 +49,14 @@ CREATE POLICY "Enable all operations for class_signups" ON class_signups
   
 CREATE POLICY "Enable insert for anon users on class_signups" ON class_signups
   FOR INSERT WITH CHECK (true);
+
+-- =============================================
+-- ADD CONTACTED COLUMN TO BOTH TABLES
+-- Run this if tables already exist
+-- =============================================
+
+-- Add contacted column to submissions
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS contacted BOOLEAN DEFAULT FALSE;
+
+-- Add contacted column to class_signups
+ALTER TABLE class_signups ADD COLUMN IF NOT EXISTS contacted BOOLEAN DEFAULT FALSE;

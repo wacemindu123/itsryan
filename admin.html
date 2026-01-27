@@ -183,6 +183,43 @@
       cursor: not-allowed;
     }
 
+    .checkbox-cell {
+      text-align: center;
+    }
+
+    .contact-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .contacted-row {
+      background: #f0f9f0 !important;
+    }
+
+    .contacted-row td {
+      opacity: 0.7;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .status-contacted {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
     /* Hide mobile cards on desktop */
     .mobile-cards {
       display: none;
@@ -405,6 +442,7 @@
           <table>
             <thead>
               <tr>
+                <th class="checkbox-cell">✓</th>
                 <th>Date</th>
                 <th>Name</th>
                 <th>Email</th>
@@ -415,14 +453,20 @@
             </thead>
             <tbody>
               ${submissions.map(sub => `
-                <tr>
+                <tr class="${sub.contacted ? 'contacted-row' : ''}">
+                  <td class="checkbox-cell">
+                    <input type="checkbox" class="contact-checkbox" 
+                      ${sub.contacted ? 'checked' : ''} 
+                      onchange="updateContactStatus(${sub.id}, this.checked, 'submissions')"
+                      title="Mark as contacted">
+                  </td>
                   <td class="date">${new Date(sub.created_at).toLocaleString()}</td>
                   <td>${escapeHtml(sub.name)}</td>
                   <td>${escapeHtml(sub.email)}</td>
                   <td>${escapeHtml(sub.business)}</td>
                   <td class="challenge-text">${escapeHtml(sub.scaling_challenge)}</td>
                   <td>
-                    <button class="send-btn" onclick="sendCalendly('${escapeHtml(sub.email)}', '${escapeHtml(sub.name).replace(/'/g, "\\'")}')">Send Calendly Link</button>
+                    <button class="send-btn" onclick="sendCalendly('${escapeHtml(sub.email)}', '${escapeHtml(sub.name).replace(/'/g, "\\'")}', ${sub.id}, 'submissions')">Send Calendly</button>
                   </td>
                 </tr>
               `).join('')}
@@ -434,9 +478,15 @@
         const mobileCards = `
           <div class="mobile-cards">
             ${submissions.map(sub => `
-              <div class="mobile-card">
+              <div class="mobile-card ${sub.contacted ? 'contacted-row' : ''}">
                 <div class="mobile-card-header">
-                  <span class="mobile-card-name">${escapeHtml(sub.name)}</span>
+                  <span class="mobile-card-name">
+                    <input type="checkbox" class="contact-checkbox" 
+                      ${sub.contacted ? 'checked' : ''} 
+                      onchange="updateContactStatus(${sub.id}, this.checked, 'submissions')"
+                      style="margin-right: 8px;">
+                    ${escapeHtml(sub.name)}
+                  </span>
                   <span class="mobile-card-date">${new Date(sub.created_at).toLocaleDateString()}</span>
                 </div>
                 <div class="mobile-card-row">
@@ -452,7 +502,7 @@
                   <span class="mobile-card-value">${escapeHtml(sub.scaling_challenge)}</span>
                 </div>
                 <div class="mobile-card-actions">
-                  <button class="send-btn" onclick="sendCalendly('${escapeHtml(sub.email)}', '${escapeHtml(sub.name).replace(/'/g, "\\'")}')">Send Calendly Link</button>
+                  <button class="send-btn" onclick="sendCalendly('${escapeHtml(sub.email)}', '${escapeHtml(sub.name).replace(/'/g, "\\'")}', ${sub.id}, 'submissions')">Send Calendly</button>
                 </div>
               </div>
             `).join('')}
@@ -475,7 +525,7 @@
     // Load submissions on page load
     loadSubmissions();
 
-    async function sendCalendly(email, name) {
+    async function sendCalendly(email, name, id, table) {
       const button = event.target;
       button.disabled = true;
       button.textContent = 'Sending...';
@@ -491,8 +541,12 @@
 
         if (response.ok) {
           button.textContent = 'Sent ✓';
+          // Auto-check the checkbox after sending
+          if (id && table) {
+            await updateContactStatus(id, true, table);
+          }
           setTimeout(() => {
-            button.textContent = 'Send Calendly Link';
+            button.textContent = 'Send Calendly';
             button.disabled = false;
           }, 3000);
         } else {
@@ -501,8 +555,34 @@
       } catch (error) {
         console.error('Error:', error);
         alert('Failed to send email. Make sure email settings are configured.');
-        button.textContent = 'Send Calendly Link';
+        button.textContent = 'Send Calendly';
         button.disabled = false;
+      }
+    }
+
+    async function updateContactStatus(id, contacted, table) {
+      try {
+        const response = await fetch('/api/update-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id, contacted, table })
+        });
+
+        if (response.ok) {
+          // Refresh the data to show updated status
+          if (table === 'submissions') {
+            loadSubmissions();
+          } else if (table === 'class_signups') {
+            loadClassSignups();
+          }
+        } else {
+          throw new Error('Failed to update status');
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update contact status.');
       }
     }
 
@@ -538,6 +618,7 @@
           <table>
             <thead>
               <tr>
+                <th class="checkbox-cell">✓</th>
                 <th>Date</th>
                 <th>Name</th>
                 <th>Email</th>
@@ -549,7 +630,13 @@
             </thead>
             <tbody>
               ${signups.map(s => `
-                <tr>
+                <tr class="${s.contacted ? 'contacted-row' : ''}">
+                  <td class="checkbox-cell">
+                    <input type="checkbox" class="contact-checkbox" 
+                      ${s.contacted ? 'checked' : ''} 
+                      onchange="updateContactStatus(${s.id}, this.checked, 'class_signups')"
+                      title="Mark as contacted">
+                  </td>
                   <td class="date">${new Date(s.created_at).toLocaleString()}</td>
                   <td>${escapeHtml(s.name)}</td>
                   <td>${escapeHtml(s.email)}</td>
@@ -567,9 +654,15 @@
         const mobileCards = `
           <div class="mobile-cards">
             ${signups.map(s => `
-              <div class="mobile-card">
+              <div class="mobile-card ${s.contacted ? 'contacted-row' : ''}">
                 <div class="mobile-card-header">
-                  <span class="mobile-card-name">${escapeHtml(s.name)}</span>
+                  <span class="mobile-card-name">
+                    <input type="checkbox" class="contact-checkbox" 
+                      ${s.contacted ? 'checked' : ''} 
+                      onchange="updateContactStatus(${s.id}, this.checked, 'class_signups')"
+                      style="margin-right: 8px;">
+                    ${escapeHtml(s.name)}
+                  </span>
                   <span class="mobile-card-date">${new Date(s.created_at).toLocaleDateString()}</span>
                 </div>
                 <div class="mobile-card-row">
