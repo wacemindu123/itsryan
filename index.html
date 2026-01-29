@@ -409,6 +409,213 @@
       font-weight: 600;
     }
 
+    /* Prompt Library Section */
+    #prompt-library {
+      background: var(--surface);
+    }
+
+    .prompt-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 24px;
+      margin-top: 60px;
+    }
+
+    .prompt-card {
+      background: var(--background);
+      padding: 32px;
+      border-radius: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .prompt-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      border-color: var(--accent);
+    }
+
+    .prompt-card-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .prompt-card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .prompt-card-description {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .prompt-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .prompt-tag {
+      background: rgba(0, 113, 227, 0.1);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .prompt-card-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .prompt-btn {
+      flex: 1;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .prompt-btn-copy {
+      background: var(--accent);
+      color: white;
+    }
+
+    .prompt-btn-copy:hover {
+      background: var(--accent-hover);
+    }
+
+    .prompt-btn-view {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .prompt-btn-view:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* Prompt Modal */
+    .prompt-modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.3s;
+      overflow-y: auto;
+    }
+
+    .prompt-modal-content {
+      position: relative;
+      background: var(--surface);
+      margin: 40px auto;
+      padding: 48px;
+      border-radius: 18px;
+      width: 90%;
+      max-width: 900px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
+    }
+
+    .prompt-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .prompt-modal-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .prompt-modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .prompt-modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .prompt-modal-body {
+      background: var(--background);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .prompt-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .copy-success {
+      background: #34c759 !important;
+    }
+
+    @media (max-width: 768px) {
+      .prompt-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .prompt-modal-content {
+        margin: 20px auto;
+        padding: 24px;
+      }
+
+      .prompt-modal-title {
+        font-size: 22px;
+      }
+
+      .prompt-modal-body {
+        font-size: 13px;
+        padding: 16px;
+      }
+    }
+
     /* Form Section */
     #apply {
       background: var(--background);
@@ -637,6 +844,7 @@
         <a href="#why">Why</a>
         <a href="#capabilities">What I Build</a>
         <a href="#how">How It Works</a>
+        <a href="#prompt-library">Prompts</a>
         <a href="#apply">Get Started</a>
       </div>
     </nav>
@@ -779,6 +987,17 @@
     </div>
   </section>
 
+  <section id="prompt-library">
+    <div class="container-wide">
+      <h2 class="section-title">Prompt Library</h2>
+      <p class="section-subtitle">Ready-to-use prompts to evaluate and improve your business</p>
+      
+      <div class="prompt-grid" id="promptGrid">
+        <!-- Prompts will be loaded here by JavaScript -->
+      </div>
+    </div>
+  </section>
+
   <section id="apply">
     <div class="container">
       <h2 class="section-title">Tell me about your business</h2>
@@ -865,6 +1084,23 @@
       <p>For Atlanta small businesses</p>
     </div>
   </footer>
+
+  <!-- Prompt Modal -->
+  <div id="promptModal" class="prompt-modal">
+    <div class="prompt-modal-content">
+      <div class="prompt-modal-header">
+        <h2 class="prompt-modal-title" id="promptModalTitle">Prompt Title</h2>
+        <button class="prompt-modal-close" onclick="closePromptModal()">&times;</button>
+      </div>
+      <div class="prompt-modal-body" id="promptModalBody">
+        <!-- Prompt content will be loaded here -->
+      </div>
+      <div class="prompt-modal-footer">
+        <button class="btn btn-secondary" onclick="closePromptModal()">Close</button>
+        <button class="btn btn-primary" id="modalCopyBtn" onclick="copyPromptFromModal()">Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
 
   <div id="successModal" class="modal">
     <div class="modal-content">
@@ -984,7 +1220,528 @@
           branding: true 
         }); 
       }
+      // Load prompts on page load
+      renderPrompts();
     }
+
+    // Prompt Library Data
+    const prompts = [
+      {
+        id: 1,
+        title: "Website Conversion Evaluation",
+        icon: "🎯",
+        description: "A comprehensive framework to evaluate your website's conversion effectiveness. Get insights from UI Design, Product Management, and Business Analysis perspectives.",
+        tags: ["Website", "Conversion", "UX", "Business Analysis"],
+        content: `# Website Conversion Evaluation Framework
+
+### Instructions for Use
+Copy this entire prompt into any LLM, replacing [WEBSITE URL] with the actual site you're evaluating. This framework synthesizes UI Design, Product Management, and Business Analysis perspectives using first principles thinking.
+
+---
+
+## EVALUATION REQUEST
+
+You are a cross-functional team consisting of:
+- **Staff UI Designer** with expertise in visual systems, interaction design, and cognitive psychology
+- **Staff Product Manager** with deep understanding of user needs, business models, and success metrics
+- **Staff Business Analyst** with expertise in data-driven decision making, market dynamics, and ROI optimization
+
+Evaluate this small business website: [WEBSITE URL]
+
+Apply first principles thinking: break down the website to fundamental truths about human behavior, business objectives, and technical constraints. Then reconstruct your evaluation from these foundations.
+
+---
+
+## FIRST PRINCIPLES FOUNDATION
+
+Before scoring, identify these fundamental elements:
+
+### Business Model Fundamentals
+- **Primary Revenue Model**: [e.g., Lead generation, E-commerce, Subscription, Advertising]
+- **Target Conversion Action**: [The ONE action that drives business value]
+- **Customer Acquisition Cost (CAC) Tolerance**: [Infer if the business model requires low-touch/high-volume or high-touch/low-volume]
+- **Customer Lifetime Value (LTV) Implications**: [Does this appear to be a repeat purchase or one-time transaction business?]
+
+### User Behavior Fundamentals
+- **Primary User Intent**: [What problem are users trying to solve when they arrive here?]
+- **User Awareness Level**: [Are users problem-aware, solution-aware, or product-aware?]
+- **Decision-Making Complexity**: [Low/Medium/High - How much research/comparison is typical?]
+- **Emotional vs. Rational Purchase**: [What's the primary decision driver?]
+
+### Technical Constraints
+- **Performance Budget**: [Is this site performance-critical for conversions?]
+- **Device Context**: [Primary access method - mobile/desktop/both?]
+- **Technical Maturity**: [What level of technical implementation is realistic for this business?]
+
+---
+
+## EVALUATION CRITERIA (130 POINTS TOTAL)
+
+### 1. STRATEGIC ALIGNMENT (20 points)
+
+**Business Model-Website Fit (10 points)**
+From **Business Analyst** perspective:
+- Does the website architecture support the actual revenue generation model?
+- Are conversion mechanisms aligned with realistic CAC/LTV economics?
+- Is the user flow optimized for the business model (e.g., lead qualification for high-touch vs. instant purchase for low-touch)?
+- Does the content strategy match the sales cycle length?
+
+From **first principles**: A website must reduce friction to the revenue-generating action while filtering for qualified prospects at a cost-effective acquisition rate.
+
+**Cross-Functional Goal Coherence (10 points)**
+From **Product Manager** perspective:
+- Do UI decisions support (not contradict) business objectives?
+- Are there conflicting CTAs that indicate misaligned stakeholder priorities?
+- Does the information architecture reflect a unified vision or committee compromise?
+- Is there evidence of data-informed decisions or opinion-based design?
+
+### 2. USER PSYCHOLOGY & COGNITIVE LOAD (20 points)
+
+**Cognitive Load Management (10 points)**
+From **UI Designer** perspective using cognitive psychology:
+- **Hick's Law**: Are users presented with too many choices at critical decision points?
+- **Miller's Law**: Is information chunked into digestible units (5-9 items max)?
+- **Progressive Disclosure**: Is complexity revealed appropriately as users advance?
+- **Cognitive Friction**: Count unnecessary form fields, unclear labels, ambiguous buttons
+- **Visual Processing**: Eye-tracking heatmap prediction - where does attention naturally flow?
+
+From **first principles**: Human working memory is limited. Every additional cognitive load unit decreases conversion probability exponentially.
+
+**Behavioral Trigger Architecture (10 points)**
+From **Product Manager** perspective using behavioral economics:
+- **Scarcity/Urgency**: Are these triggers used ethically and credibly?
+- **Social Proof**: Quality and placement of testimonials, reviews, user counts
+- **Authority**: Credentials, certifications, media mentions, awards
+- **Reciprocity**: Free value provided before asking for commitment
+- **Loss Aversion**: Framing of value and risk
+- **Anchoring**: Pricing and value perception management
+
+From **first principles**: Humans are predictably irrational. Design must account for System 1 (fast, emotional) and System 2 (slow, rational) thinking.
+
+### 3. USER JOURNEY & EXPERIENCE ARCHITECTURE (25 points)
+
+**Multi-Persona Journey Mapping (10 points)**
+From **Product Manager** perspective:
+- Identify all distinct user personas/segments visiting the site
+- For each persona: Is there a clear, frictionless path to their goal?
+- Are different levels of buyer awareness addressed? (Unaware → Most Aware spectrum)
+- Can users self-identify and choose their relevant path?
+- Are there dead ends or circular navigation patterns?
+
+From **first principles**: Different users have different jobs-to-be-done. The website must accommodate multiple simultaneous journeys without creating chaos.
+
+**Information Architecture & Findability (8 points)**
+From **UI Designer** & **Product Manager** perspective:
+- **Flat vs Deep**: Is the IA appropriately shallow (2-3 clicks to anything important)?
+- **Categorization Logic**: Are categories based on user mental models or internal organizational structure?
+- **Search Functionality**: If needed, is it present and functional?
+- **Wayfinding**: Can users always answer "Where am I?" and "Where can I go?"
+- **Breadcrumbs/Progress Indicators**: For multi-step processes, is progress clear?
+
+**Error States & Edge Cases (7 points)**
+From **UI Designer** & **Product Manager** perspective:
+- What happens when forms fail? Are error messages helpful?
+- What if JavaScript is disabled or slow to load?
+- What if images fail to load?
+- Are there broken links or 404 errors?
+- Does the site handle empty states gracefully (e.g., no search results)?
+- Is there a clear path forward when users encounter errors?
+
+From **first principles**: Systems fail. User experience during failure states often determines trust and conversion more than perfect-state experience.
+
+### 4. VISUAL SYSTEM & INTERFACE DESIGN (20 points)
+
+**Design System Coherence (8 points)**
+From **Staff UI Designer** perspective:
+- **Color System**: Purposeful palette with clear semantic meaning (primary, secondary, success, error, warning)
+- **Typography Scale**: Consistent, readable hierarchy (not just "looks nice")
+- **Spacing System**: Evidence of consistent spacing units (4px/8px grid)
+- **Component Consistency**: Buttons, inputs, cards use consistent patterns
+- **Visual Weight**: Proper use of size, color, position to create hierarchy
+
+From **first principles**: Consistency reduces cognitive load. Inconsistency signals lack of quality and erodes trust.
+
+**Accessibility & Inclusive Design (7 points)**
+From **UI Designer** perspective with WCAG 2.1 AA standards:
+- **Color Contrast**: Text meets minimum 4.5:1 ratio (3:1 for large text)
+- **Keyboard Navigation**: Can all interactive elements be reached via keyboard?
+- **Focus Indicators**: Are focus states clearly visible?
+- **Alt Text**: Do images have descriptive alt attributes?
+- **Semantic HTML**: Proper heading hierarchy, landmark regions
+- **Touch Targets**: Minimum 44x44px for interactive elements (mobile)
+- **Motion**: Is auto-playing motion respectful of prefers-reduced-motion?
+
+From **first principles**: 15-20% of users have some form of disability. Accessibility is both ethical imperative and business opportunity.
+
+**Visual Communication & Brand (5 points)**
+From **UI Designer** perspective:
+- Does the visual language authentically represent the brand promise?
+- Are images purposeful (communicating value) vs decorative?
+- Is there visual differentiation from competitors in the category?
+- Does the design aesthetic match target audience expectations?
+- Photography/Illustration quality and authenticity (avoid obvious stock)
+
+### 5. CONVERSION MECHANICS & FUNNEL OPTIMIZATION (20 points)
+
+**Conversion Path Engineering (10 points)**
+From **Product Manager** & **Business Analyst** perspective:
+- **Primary CTA Prominence**: Is the most important action unmissable?
+- **Friction Audit**: Count every field, click, page load, decision required
+- **Value Ladder**: Do micro-commitments build toward macro-conversion?
+- **Exit Intent**: Are there appropriate mechanisms to capture abandoning users?
+- **Multi-Channel Conversion**: Are there alternative conversion paths (phone, chat, email)?
+
+From **first principles**: Every additional step in a conversion funnel has a dropout rate. Ruthlessly eliminate unnecessary friction.
+
+**Trust & Risk Reduction (10 points)**
+From **Business Analyst** & **UI Designer** perspective:
+- **Social Proof Quality**: Are testimonials specific, credible, verifiable?
+- **Authority Markers**: Certifications, press logos, industry affiliations
+- **Transparency**: Clear pricing, terms, privacy policy, contact information
+- **Risk Reversal**: Money-back guarantees, free trials, no-obligation consultations
+- **Security Signals**: SSL, payment security badges, data protection mentions
+- **Recency**: Copyright dates, blog post dates - does the site feel active/maintained?
+
+From **first principles**: Uncertainty prevents action. Trust building must exceed perceived risk for conversion to occur.
+
+### 6. CONTENT STRATEGY & MESSAGING (15 points)
+
+**Message-Market Fit (8 points)**
+From **Product Manager** & **Business Analyst** perspective:
+- **Value Proposition Clarity**: Can a first-time visitor articulate your value in 5 seconds?
+- **Differentiation**: Is competitive advantage explicit and credible?
+- **Customer Language**: Does copy use the customer's words or internal jargon?
+- **Problem-Agitation-Solution**: Is customer pain point clearly articulated before solution?
+- **Specificity**: Vague claims ("best quality") vs specific ("24-hour turnaround")
+
+From **first principles**: Customers don't buy products, they buy outcomes. Messaging must bridge the gap between current state and desired state.
+
+**Content Hierarchy & Scannability (7 points)**
+From **UI Designer** & **Product Manager** perspective:
+- **F-Pattern Optimization**: Most important content in top-left/top-center
+- **Scannable Structure**: Subheadings, bullet points, short paragraphs (3-4 lines max)
+- **Information Ordering**: Inverted pyramid (most important first) vs chronological
+- **White Space**: Generous breathing room around text blocks
+- **Readability**: Appropriate line length (50-75 characters), line height (1.5-1.8)
+
+### 7. TECHNICAL PERFORMANCE & FOUNDATION (15 points)
+
+**Core Web Vitals & Performance (8 points)**
+From **UI Designer** & **Product Manager** perspective:
+- **Largest Contentful Paint (LCP)**: < 2.5s (measures loading performance)
+- **First Input Delay (FID)**: < 100ms (measures interactivity)
+- **Cumulative Layout Shift (CLS)**: < 0.1 (measures visual stability)
+- **Time to Interactive**: How quickly can users actually use the site?
+- **Mobile Performance**: Performance on 3G/4G networks
+
+From **first principles**: Every 100ms delay in load time can decrease conversions by 7%. Performance is a feature, not a technical concern.
+
+**SEO & Discoverability Foundation (7 points)**
+From **Business Analyst** perspective:
+- **Title Tags**: Unique, descriptive, keyword-optimized for each page
+- **Meta Descriptions**: Compelling, action-oriented (these are ad copy)
+- **Heading Structure**: Logical H1-H6 hierarchy
+- **URL Structure**: Human-readable, keyword-inclusive URLs
+- **Schema Markup**: Structured data for rich snippets (reviews, events, products, FAQs)
+- **Internal Linking**: Strategic links between related content
+- **Content Quality**: Original, valuable content vs thin/duplicate content
+
+From **first principles**: If ideal customers can't find you, nothing else matters. Organic search is often the most cost-effective acquisition channel.
+
+### 8. DATA & ANALYTICS INFRASTRUCTURE (10 points)
+
+**Measurement Foundation (10 points)**
+From **Business Analyst** & **Product Manager** perspective:
+- **Analytics Implementation**: Is Google Analytics, Mixpanel, or similar properly configured?
+- **Goal Tracking**: Are conversion goals and events properly set up?
+- **Heatmap/Session Recording**: Evidence of behavioral analytics (Hotjar, FullStory)
+- **A/B Testing Capability**: Is the infrastructure present for experimentation?
+- **Attribution**: Can you trace user journey from source to conversion?
+- **Dashboard Accessibility**: Can stakeholders access key metrics?
+
+From **first principles**: You can't improve what you don't measure. Data infrastructure must exist before optimization can begin.
+
+### 9. MOBILE EXPERIENCE (10 points)
+
+**Mobile-First Thinking (10 points)**
+From **UI Designer** perspective:
+- **Touch Target Sizes**: All interactive elements ≥ 44x44px
+- **Thumb Zone Optimization**: Critical actions in easy-to-reach areas
+- **Mobile Navigation**: Appropriate pattern (hamburger, bottom nav, etc.)
+- **Form Optimization**: Correct input types, minimal typing required
+- **Content Prioritization**: Is mobile experience thoughtfully edited (not just stacked desktop)?
+- **Responsive Images**: Appropriately sized images for mobile bandwidth
+- **No Horizontal Scrolling**: Content fits viewport without side-scrolling
+
+From **first principles**: Mobile is often the primary (or only) experience. Mobile-first is not about screen size, it's about constraints forcing prioritization.
+
+### 10. COMPETITIVE CONTEXT & DIFFERENTIATION (5 points)
+
+**Market Positioning Analysis (5 points)**
+From **Business Analyst** & **Product Manager** perspective:
+- How does this site compare to top 3 competitors in the space?
+- What does this site do better than competitors?
+- What do competitors do better?
+- Is there a clear reason to choose this business over alternatives?
+- Does the site acknowledge competitive alternatives or operate as if no alternatives exist?
+
+From **first principles**: Customers always have alternatives (including doing nothing). Conversion requires clear differentiation or overwhelming advantage in at least one dimension.
+
+---
+
+## GRADING RUBRIC
+
+**Score Interpretation (out of 130 points):**
+
+- **117-130 points (90-100%) - A: Exceptional**
+  Staff-level execution across disciplines. Evidence of cross-functional collaboration, first-principles thinking, and data-driven optimization. Minor refinements only.
+
+- **104-116 points (80-89%) - B: Strong**
+  Solid foundation with clear strengths in multiple areas. Some gaps exist but core user journey is well-executed. Would benefit from optimization and testing.
+
+- **91-103 points (70-79%) - C: Adequate**
+  Functional but inconsistent. Some disciplines are strong while others are weak, suggesting siloed decision-making. Meaningful improvements needed to compete effectively.
+
+- **78-90 points (60-69%) - D: Below Average**
+  Significant gaps across multiple dimensions. Likely losing conversions due to fundamental issues with strategy, execution, or alignment. Substantial revision needed.
+
+- **Below 78 points (<60%) - F: Ineffective**
+  The website is actively harming the business by failing to convert or potentially driving qualified prospects away. Comprehensive redesign required using cross-functional approach.
+
+---
+
+## OUTPUT FORMAT
+
+### EXECUTIVE SUMMARY
+**From the perspective of a cross-functional leadership team:**
+
+Provide a 4-6 sentence assessment covering:
+1. Primary strength (what's working well)
+2. Critical weakness (what's hurting conversions most)
+3. Strategic misalignment (if any)
+4. Recommended focus area
+
+### FIRST PRINCIPLES ANALYSIS
+
+Document your findings on the fundamental questions:
+- **Business Model Reality**: What is this business actually trying to accomplish?
+- **User Motivation**: Why would someone choose this business?
+- **Competitive Position**: What makes this business different/better?
+- **Primary Friction Point**: What's the single biggest conversion barrier?
+
+### DETAILED SCORING BY DISCIPLINE
+
+For each of the 10 evaluation criteria:
+
+**[Category Name] - [Score/Total]**
+
+**UI Designer Perspective:**
+- Strengths: [Specific observations]
+- Weaknesses: [Specific issues]
+- Recommendations: [Actionable improvements with rationale]
+
+**Product Manager Perspective:**
+- Strengths: [Specific observations]
+- Weaknesses: [Specific issues]
+- Recommendations: [Actionable improvements with rationale]
+
+**Business Analyst Perspective:**
+- Strengths: [Specific observations]
+- Weaknesses: [Specific issues]
+- Recommendations: [Actionable improvements with rationale]
+
+### OVERALL ASSESSMENT
+
+- **Total Score**: [X/130]
+- **Letter Grade**: [A/B/C/D/F]
+- **Conversion Effectiveness**: [High/Medium/Low] with quantitative reasoning
+- **Estimated Conversion Rate Impact**: If specific issues were fixed, what % improvement is realistic?
+
+### PRIORITIZED IMPROVEMENT ROADMAP
+
+**Immediate Wins (Week 1-2)** - Low effort, high impact
+1. [Specific change with expected impact]
+2. [Specific change with expected impact]
+3. [Specific change with expected impact]
+
+**Strategic Improvements (Month 1-2)** - Medium effort, high impact
+1. [Specific change with expected impact]
+2. [Specific change with expected impact]
+3. [Specific change with expected impact]
+
+**Foundation Building (Quarter 1)** - High effort, transformational impact
+1. [Specific change with expected impact]
+2. [Specific change with expected impact]
+
+### HYPOTHESIS-DRIVEN TESTING RECOMMENDATIONS
+
+Provide 3 specific A/B test hypotheses with:
+- **Hypothesis**: "We believe that [change] will result in [outcome] because [reasoning]"
+- **Test Setup**: What would you test and how?
+- **Success Metrics**: How would you measure success?
+- **Expected Impact**: What improvement % is realistic?
+
+### COMPETITIVE BENCHMARK
+
+Brief analysis comparing to industry standards:
+- What percentile does this site fall into? (Top 10%, Top 25%, Average, Below Average)
+- Specific competitive advantages to leverage
+- Specific competitive gaps to close
+
+### RISK ASSESSMENT
+
+From **Business Analyst** perspective:
+- What are the biggest risks if these issues aren't addressed?
+- What opportunities are being left on the table?
+- What's the estimated cost of inaction (in lost conversions/revenue)?
+
+---
+
+## ANALYSIS GUIDELINES
+
+**First Principles Approach:**
+- Don't just identify problems—explain the fundamental reason WHY it's a problem
+- Connect every observation to business outcomes, user psychology, or technical constraints
+- Question assumptions: "Is this actually serving the goal, or is it cargo cult design?"
+
+**Cross-Functional Synthesis:**
+- Look for misalignment between disciplines (e.g., beautiful UI that hurts conversions)
+- Identify opportunities where all three perspectives align for maximum impact
+- Call out when solutions require cross-functional collaboration
+
+**Evidence-Based Reasoning:**
+- Support claims with specific examples from the website
+- Reference established principles (Hick's Law, F-pattern, etc.) when applicable
+- Distinguish between best practices and context-dependent decisions
+
+**Realistic & Actionable:**
+- Consider the resource constraints of a small business
+- Prioritize based on impact vs. effort
+- Provide specific examples, not vague suggestions
+
+**Avoid Common Pitfalls:**
+- Don't confuse personal preference with user-centered design
+- Don't recommend enterprise solutions for small business problems
+- Don't ignore business model realities in pursuit of "perfect" UX
+- Don't recommend changes without explaining the expected impact
+
+---
+
+## CRITICAL EVALUATION CHECKLIST
+
+Before finalizing your assessment, verify you've addressed:
+
+- [ ] Have I identified the actual business model and revenue mechanism?
+- [ ] Have I mapped out distinct user personas and their journeys?
+- [ ] Have I applied cognitive psychology principles, not just aesthetic judgment?
+- [ ] Have I assessed cross-functional alignment (or misalignment)?
+- [ ] Have I evaluated measurability and analytics infrastructure?
+- [ ] Have I considered mobile as a primary, not secondary, experience?
+- [ ] Have I assessed accessibility beyond "does it work"?
+- [ ] Have I provided specific, testable recommendations?
+- [ ] Have I considered competitive context?
+- [ ] Have I framed everything through the lens of business impact?
+
+---
+
+End of evaluation framework. Replace [WEBSITE URL] with the actual website address.`
+      }
+    ];
+
+    let currentPromptId = null;
+
+    // Render prompt cards
+    function renderPrompts() {
+      const grid = document.getElementById('promptGrid');
+      grid.innerHTML = prompts.map(prompt => `
+        <div class="prompt-card">
+          <span class="prompt-card-icon">${prompt.icon}</span>
+          <h3>${prompt.title}</h3>
+          <p class="prompt-card-description">${prompt.description}</p>
+          <div class="prompt-card-tags">
+            ${prompt.tags.map(tag => `<span class="prompt-tag">${tag}</span>`).join('')}
+          </div>
+          <div class="prompt-card-actions">
+            <button class="prompt-btn prompt-btn-copy" onclick="copyPrompt(${prompt.id}, event)">Copy</button>
+            <button class="prompt-btn prompt-btn-view" onclick="viewPrompt(${prompt.id})">View Full</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Copy prompt to clipboard
+    async function copyPrompt(id, event) {
+      const prompt = prompts.find(p => p.id === id);
+      if (!prompt) return;
+
+      try {
+        await navigator.clipboard.writeText(prompt.content);
+        const btn = event.target;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copy-success');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copy-success');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      }
+    }
+
+    // View full prompt in modal
+    function viewPrompt(id) {
+      const prompt = prompts.find(p => p.id === id);
+      if (!prompt) return;
+
+      currentPromptId = id;
+      document.getElementById('promptModalTitle').textContent = prompt.title;
+      document.getElementById('promptModalBody').textContent = prompt.content;
+      document.getElementById('promptModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Close prompt modal
+    function closePromptModal() {
+      document.getElementById('promptModal').style.display = 'none';
+      document.body.style.overflow = '';
+      currentPromptId = null;
+    }
+
+    // Copy from modal
+    async function copyPromptFromModal() {
+      if (!currentPromptId) return;
+      const prompt = prompts.find(p => p.id === currentPromptId);
+      if (!prompt) return;
+
+      try {
+        await navigator.clipboard.writeText(prompt.content);
+        const btn = document.getElementById('modalCopyBtn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copy-success');
+        setTimeout(() => {
+          btn.textContent = 'Copy to Clipboard';
+          btn.classList.remove('copy-success');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      }
+    }
+
+    // Close modal on outside click
+    document.getElementById('promptModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closePromptModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closePromptModal();
+      }
+    });
   </script>
 </body>
 </html>
