@@ -60,3 +60,31 @@ ALTER TABLE submissions ADD COLUMN IF NOT EXISTS contacted BOOLEAN DEFAULT FALSE
 
 -- Add contacted column to class_signups
 ALTER TABLE class_signups ADD COLUMN IF NOT EXISTS contacted BOOLEAN DEFAULT FALSE;
+
+-- =============================================
+-- PROMPTS TABLE
+-- =============================================
+
+CREATE TABLE prompts (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  icon TEXT DEFAULT '📝',
+  description TEXT NOT NULL,
+  tags TEXT[] DEFAULT '{}',
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Add an index on created_at for faster sorting
+CREATE INDEX idx_prompts_created_at ON prompts(created_at DESC);
+
+-- Enable Row Level Security
+ALTER TABLE prompts ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for prompts - allow read for everyone, write for authenticated
+CREATE POLICY "Enable read for all users on prompts" ON prompts
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for prompts" ON prompts
+  FOR ALL USING (true);
