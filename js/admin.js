@@ -473,11 +473,10 @@ function cancelEdit() {
 // INITIALIZATION
 // =============================================
 
-// Load all data on page load
-loadSubmissions();
-loadClassSignups();
-loadPrompts();
+// Data loading is now triggered by Clerk auth in admin.html
+// Auto-refresh is set up after authentication
 
-// Auto-refresh submissions every 30 seconds
-setInterval(loadSubmissions, 30000);
-setInterval(loadClassSignups, 30000);
+function startAutoRefresh() {
+  setInterval(loadSubmissions, 30000);
+  setInterval(loadClassSignups, 30000);
+}

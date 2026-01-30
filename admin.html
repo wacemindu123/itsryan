@@ -8,9 +8,96 @@
   <link rel="apple-touch-icon" href="/chatgptportrait.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/admin.css">
+  <!-- Clerk Authentication -->
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_bGl2aW5nLWNob3ctODYuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    src="https://living-chow-86.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
+  <style>
+    /* Auth styles */
+    .auth-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-container h1 {
+      margin-bottom: 8px;
+    }
+    .auth-container p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    #clerk-auth {
+      width: 100%;
+      max-width: 400px;
+    }
+    .admin-content {
+      display: none;
+    }
+    .admin-content.authenticated {
+      display: block;
+    }
+    .user-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: 8px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .user-email {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .logout-btn:hover {
+      background: var(--background);
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Auth Screen (shown when not logged in) -->
+  <div class="auth-container" id="authScreen">
+    <h1>Admin Access</h1>
+    <p>Sign in to access the admin panel</p>
+    <div id="clerk-auth"></div>
+  </div>
+
+  <!-- Admin Content (hidden until authenticated) -->
+  <div class="container admin-content" id="adminContent">
+    <!-- User Header -->
+    <div class="user-header">
+      <div class="user-info">
+        <img id="userAvatar" class="user-avatar" src="" alt="">
+        <span id="userEmail" class="user-email"></span>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
     <a href="/" class="back-link">← Back to Website</a>
     
     <h1>Form Submissions</h1>
@@ -113,7 +200,46 @@
     </div>
   </div>
 
-  <!-- External JavaScript -->
+  <!-- Clerk Auth Script -->
+  <script>
+    window.addEventListener('load', async () => {
+      await Clerk.load();
+      
+      if (Clerk.user) {
+        // User is signed in - show admin content
+        showAdminContent();
+      } else {
+        // User is not signed in - show login
+        document.getElementById('authScreen').style.display = 'flex';
+        Clerk.mountSignIn(document.getElementById('clerk-auth'));
+      }
+    });
+
+    function showAdminContent() {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('adminContent').classList.add('authenticated');
+      
+      // Set user info
+      const user = Clerk.user;
+      document.getElementById('userEmail').textContent = user.primaryEmailAddress?.emailAddress || '';
+      document.getElementById('userAvatar').src = user.imageUrl || '';
+      
+      // Load admin data
+      loadSubmissions();
+      loadClassSignups();
+      loadPrompts();
+      
+      // Start auto-refresh
+      startAutoRefresh();
+    }
+
+    async function handleLogout() {
+      await Clerk.signOut();
+      window.location.reload();
+    }
+  </script>
+
+  <!-- External JavaScript (only runs after auth) -->
   <script src="/js/admin.js"></script>
 </body>
 </html>
