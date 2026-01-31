@@ -6,16 +6,22 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
+  
   if (!apiKey) {
-    return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
+    console.error('RESEND_API_KEY is not configured');
+    return NextResponse.json({ error: 'Email service not configured - missing API key' }, { status: 500 });
   }
+  
   const resend = new Resend(apiKey);
+  
   try {
     const { email, name } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json({ error: 'Email and name are required' }, { status: 400 });
     }
+
+    console.log(`Sending Calendly email to ${email} (${name})`);
 
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -32,11 +38,16 @@ export async function POST(request: NextRequest) {
       `
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Resend API error:', error);
+      return NextResponse.json({ error: error.message || 'Failed to send email' }, { status: 500 });
+    }
 
+    console.log('Email sent successfully:', data);
     return NextResponse.json({ success: true, message: 'Email sent successfully', data });
   } catch (error) {
     console.error('Error sending email:', error);
-    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to send email';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

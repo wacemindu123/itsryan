@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useUser, SignIn, SignOutButton } from '@clerk/nextjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +38,7 @@ interface Prompt {
 }
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isSignedIn, isLoaded } = useUser();
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [classSignups, setClassSignups] = useState<ClassSignup[]>([]);
@@ -73,14 +73,7 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    // Simple auth check - in production, Clerk will handle this
-    setIsLoading(false);
-    // Auto-authenticate for now (Clerk will be configured in production)
-    setIsAuthenticated(true);
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       loadSubmissions();
       loadClassSignups();
       loadPrompts();
@@ -93,7 +86,7 @@ export default function AdminPage() {
         clearInterval(interval2);
       };
     }
-  }, [isAuthenticated, loadSubmissions, loadClassSignups, loadPrompts]);
+  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts]);
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
@@ -178,15 +171,16 @@ export default function AdminPage() {
   const inPersonCount = classSignups.filter(s => s.format === 'in-person').length;
   const virtualCount = classSignups.filter(s => s.format === 'virtual').length;
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!isSignedIn) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-5">
         <h1 className="text-4xl font-semibold mb-2">Admin Access</h1>
-        <p className="text-gray-500 mb-8">Authentication required</p>
+        <p className="text-gray-500 mb-8">Sign in to continue</p>
+        <SignIn routing="hash" />
       </div>
     );
   }
@@ -196,9 +190,11 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-5 p-3 px-4 bg-white rounded-lg">
           <span className="text-sm text-gray-500">Admin</span>
-          <button onClick={() => setIsAuthenticated(false)} className="bg-transparent border border-gray-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-50">
-            Sign Out
-          </button>
+          <SignOutButton>
+            <button className="bg-transparent border border-gray-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-50">
+              Sign Out
+            </button>
+          </SignOutButton>
         </div>
 
         <Link href="/" className="inline-block mb-5 text-blue-600 font-medium hover:underline">← Back to Website</Link>
