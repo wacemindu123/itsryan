@@ -202,18 +202,18 @@ export default function AdminPage() {
         <h1 className="text-4xl font-semibold mb-2">Form Submissions</h1>
         <p className="text-gray-500 mb-10">All responses from the business scaling form</p>
 
-        <div className="grid grid-cols-3 gap-5 mb-10">
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{submissions.length}</div>
-            <div className="text-sm text-gray-500">Total Submissions</div>
+        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{submissions.length}</div>
+            <div className="text-xs md:text-sm text-gray-500">Total Submissions</div>
           </div>
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{todayCount}</div>
-            <div className="text-sm text-gray-500">Today</div>
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{todayCount}</div>
+            <div className="text-xs md:text-sm text-gray-500">Today</div>
           </div>
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{weekCount}</div>
-            <div className="text-sm text-gray-500">This Week</div>
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{weekCount}</div>
+            <div className="text-xs md:text-sm text-gray-500">This Week</div>
           </div>
         </div>
 

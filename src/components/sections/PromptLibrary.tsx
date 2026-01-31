@@ -73,15 +73,15 @@ export default function PromptLibrary() {
         id="prompt-library" 
         className={`py-[100px] bg-[var(--surface)] transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
-        <div className="max-w-[1200px] mx-auto px-[22px]">
-          <h2 className="text-5xl font-semibold mb-4 text-center text-[var(--text-primary)] tracking-[-1px] leading-[1.1] max-md:text-[32px]">
+        <div className="max-w-[1200px] mx-auto px-5">
+          <h2 className="text-[28px] sm:text-4xl md:text-5xl font-semibold mb-4 text-center text-[var(--text-primary)] tracking-[-1px] leading-[1.1]">
             Prompt Library
           </h2>
-          <p className="text-[21px] text-[var(--text-secondary)] text-center mb-20 font-normal tracking-[-0.2px] max-md:text-[19px]">
+          <p className="text-[17px] sm:text-[19px] md:text-[21px] text-[var(--text-secondary)] text-center mb-10 md:mb-20 font-normal tracking-[-0.2px]">
             Ready-to-use prompts to evaluate and improve your business
           </p>
           
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-6 mt-[60px] max-md:grid-cols-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 md:gap-6 mt-8 md:mt-[60px]">
             {prompts.length === 0 ? (
               <div className="text-center py-10 text-[var(--text-secondary)] col-span-full">
                 No prompts available yet. Check back soon!
@@ -90,11 +90,11 @@ export default function PromptLibrary() {
               prompts.map((prompt) => (
                 <div 
                   key={prompt.id}
-                  className="bg-[var(--background)] p-8 rounded-[18px] border border-black/5 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:border-[var(--accent)] transition-all cursor-pointer"
+                  className="bg-[var(--background)] p-6 md:p-8 rounded-[18px] border border-black/5 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:border-[var(--accent)] transition-all cursor-pointer"
                 >
-                  <span className="text-[40px] mb-4 block">{prompt.icon || '📝'}</span>
-                  <h3 className="text-xl mb-3 text-[var(--text-primary)] font-semibold tracking-[-0.3px]">{prompt.title}</h3>
-                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.5] mb-5">{prompt.description}</p>
+                  <span className="text-[32px] md:text-[40px] mb-3 md:mb-4 block">{prompt.icon || '📝'}</span>
+                  <h3 className="text-lg md:text-xl mb-2 md:mb-3 text-[var(--text-primary)] font-semibold tracking-[-0.3px]">{prompt.title}</h3>
+                  <p className="text-[var(--text-secondary)] text-[14px] md:text-[15px] leading-[1.5] mb-4 md:mb-5">{prompt.description}</p>
                   <div className="flex flex-wrap gap-2 mb-5">
                     {(prompt.tags || []).map((tag, i) => (
                       <span key={i} className="bg-[var(--accent)]/10 text-[var(--accent)] px-3 py-1 rounded-full text-xs font-medium">

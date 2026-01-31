@@ -61,15 +61,15 @@ export default function ContactForm() {
         id="apply" 
         className={`py-[100px] bg-[var(--background)] transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
-        <div className="max-w-[980px] mx-auto px-[22px]">
-          <h2 className="text-5xl font-semibold mb-4 text-center text-[var(--text-primary)] tracking-[-1px] leading-[1.1] max-md:text-[32px]">
+        <div className="max-w-[980px] mx-auto px-5">
+          <h2 className="text-[28px] sm:text-4xl md:text-5xl font-semibold mb-4 text-center text-[var(--text-primary)] tracking-[-1px] leading-[1.1]">
             Tell me about your business
           </h2>
-          <p className="text-[21px] text-[var(--text-secondary)] text-center mb-20 font-normal tracking-[-0.2px] max-md:text-[19px]">
+          <p className="text-[17px] sm:text-[19px] md:text-[21px] text-[var(--text-secondary)] text-center mb-10 md:mb-20 font-normal tracking-[-0.2px]">
             I&apos;ll help you scale with the right tech solutions.
           </p>
           
-          <div className="max-w-[600px] mx-auto bg-[var(--surface)] p-14 rounded-[18px] border border-black/5 max-md:p-8 max-md:px-6">
+          <div className="max-w-[600px] mx-auto bg-[var(--surface)] p-6 sm:p-8 md:p-14 rounded-[18px] border border-black/5">
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label className="block mb-2 font-medium text-[var(--text-primary)] text-[17px] tracking-[-0.2px]">
