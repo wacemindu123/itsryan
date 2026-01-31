@@ -221,57 +221,69 @@ export default function AdminPage() {
           Refresh Data
         </button>
 
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm mb-16 overflow-x-auto">
-          <table className="w-full border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="p-4 text-left font-semibold border-b border-gray-100">✓</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Date</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Name</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Email</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Business</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Challenge</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map(sub => (
-                <tr key={sub.id} className={`hover:bg-gray-50 ${sub.contacted ? 'bg-green-50 opacity-70' : ''}`}>
-                  <td className="p-4 border-b border-gray-100">
-                    <input type="checkbox" checked={sub.contacted} onChange={(e) => updateContactStatus(sub.id, e.target.checked, 'submissions')} className="w-5 h-5 accent-blue-600" />
-                  </td>
-                  <td className="p-4 border-b border-gray-100 text-sm text-gray-500">{new Date(sub.created_at).toLocaleString()}</td>
-                  <td className="p-4 border-b border-gray-100">{sub.name}</td>
-                  <td className="p-4 border-b border-gray-100">{sub.email}</td>
-                  <td className="p-4 border-b border-gray-100">{sub.business}</td>
-                  <td className="p-4 border-b border-gray-100 max-w-md text-sm">{sub.scaling_challenge}</td>
-                  <td className="p-4 border-b border-gray-100">
-                    <button onClick={() => sendCalendly(sub.email, sub.name, sub.id)} className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer hover:bg-blue-700">
-                      Send Calendly
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {submissions.length === 0 && <div className="p-10 text-center text-gray-500">No submissions yet</div>}
+        {/* Submissions Cards */}
+        <div className="space-y-4 mb-16">
+          {submissions.length === 0 ? (
+            <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No submissions yet</div>
+          ) : (
+            submissions.map(sub => (
+              <div key={sub.id} className={`bg-white rounded-xl p-5 md:p-6 shadow-sm border-l-4 ${sub.contacted ? 'border-green-500 bg-green-50/50' : 'border-blue-500'}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      checked={sub.contacted} 
+                      onChange={(e) => updateContactStatus(sub.id, e.target.checked, 'submissions')} 
+                      className="w-5 h-5 accent-blue-600" 
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">{sub.name}</h3>
+                      <p className="text-sm text-gray-500">{new Date(sub.created_at).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => sendCalendly(sub.email, sub.name, sub.id)} 
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-700 whitespace-nowrap"
+                  >
+                    Send Calendly
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                    <p className="text-sm font-medium text-gray-900 break-all">{sub.email}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Business</p>
+                    <p className="text-sm font-medium text-gray-900">{sub.business}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Challenge</p>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{sub.scaling_challenge}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <h1 className="text-4xl font-semibold mb-2 mt-16">AI Class Signups</h1>
         <p className="text-gray-500 mb-10">All signups for Free AI Classes</p>
 
-        <div className="grid grid-cols-3 gap-5 mb-10">
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{classSignups.length}</div>
-            <div className="text-sm text-gray-500">Total Signups</div>
+        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{classSignups.length}</div>
+            <div className="text-xs md:text-sm text-gray-500">Total Signups</div>
           </div>
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{inPersonCount}</div>
-            <div className="text-sm text-gray-500">In-Person</div>
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{inPersonCount}</div>
+            <div className="text-xs md:text-sm text-gray-500">In-Person</div>
           </div>
-          <div className="bg-white p-6 rounded-xl text-center shadow-sm">
-            <div className="text-4xl font-semibold text-blue-600 mb-1">{virtualCount}</div>
-            <div className="text-sm text-gray-500">Virtual</div>
+          <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+            <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{virtualCount}</div>
+            <div className="text-xs md:text-sm text-gray-500">Virtual</div>
           </div>
         </div>
 
@@ -279,38 +291,56 @@ export default function AdminPage() {
           Refresh Class Data
         </button>
 
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm mb-16 overflow-x-auto">
-          <table className="w-full border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="p-4 text-left font-semibold border-b border-gray-100">✓</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Date</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Name</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Email</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Phone</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Business</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Format</th>
-                <th className="p-4 text-left font-semibold border-b border-gray-100">Experience</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classSignups.map(s => (
-                <tr key={s.id} className={`hover:bg-gray-50 ${s.contacted ? 'bg-green-50 opacity-70' : ''}`}>
-                  <td className="p-4 border-b border-gray-100">
-                    <input type="checkbox" checked={s.contacted} onChange={(e) => updateContactStatus(s.id, e.target.checked, 'class_signups')} className="w-5 h-5 accent-blue-600" />
-                  </td>
-                  <td className="p-4 border-b border-gray-100 text-sm text-gray-500">{new Date(s.created_at).toLocaleString()}</td>
-                  <td className="p-4 border-b border-gray-100">{s.name}</td>
-                  <td className="p-4 border-b border-gray-100">{s.email}</td>
-                  <td className="p-4 border-b border-gray-100">{s.phone}</td>
-                  <td className="p-4 border-b border-gray-100">{s.business || '-'}</td>
-                  <td className="p-4 border-b border-gray-100">{s.format}</td>
-                  <td className="p-4 border-b border-gray-100">{s.experience}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {classSignups.length === 0 && <div className="p-10 text-center text-gray-500">No class signups yet</div>}
+        {/* Class Signups Cards */}
+        <div className="space-y-4 mb-16">
+          {classSignups.length === 0 ? (
+            <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No class signups yet</div>
+          ) : (
+            classSignups.map(s => (
+              <div key={s.id} className={`bg-white rounded-xl p-5 md:p-6 shadow-sm border-l-4 ${s.contacted ? 'border-green-500 bg-green-50/50' : 'border-purple-500'}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      checked={s.contacted} 
+                      onChange={(e) => updateContactStatus(s.id, e.target.checked, 'class_signups')} 
+                      className="w-5 h-5 accent-blue-600" 
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">{s.name}</h3>
+                      <p className="text-sm text-gray-500">{new Date(s.created_at).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${s.format === 'in-person' ? 'bg-green-100 text-green-700' : s.format === 'virtual' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                    {s.format === 'in-person' ? '📍 In-Person' : s.format === 'virtual' ? '💻 Virtual' : '🔄 Either'}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                    <p className="text-sm font-medium text-gray-900 break-all">{s.email}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Phone</p>
+                    <p className="text-sm font-medium text-gray-900">{s.phone}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Business</p>
+                    <p className="text-sm font-medium text-gray-900">{s.business || '-'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 sm:col-span-2 lg:col-span-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">AI Experience</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {s.experience === 'none' ? '🆕 Never tried it' : 
+                       s.experience === 'beginner' ? '👋 Used ChatGPT a few times' : 
+                       s.experience === 'intermediate' ? '⚡ Uses AI regularly' : s.experience}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="mt-16">
