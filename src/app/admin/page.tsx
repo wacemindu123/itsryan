@@ -90,11 +90,18 @@ export default function AdminPage() {
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
-      await fetch('/api/update-status', {
+      const res = await fetch('/api/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, contacted, table }),
       });
+      if (res.ok) {
+        if (table === 'submissions') {
+          loadSubmissions();
+        } else if (table === 'class_signups') {
+          loadClassSignups();
+        }
+      }
     } catch (e) { console.error(e); }
   }
 
