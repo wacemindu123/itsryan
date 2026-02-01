@@ -106,17 +106,27 @@ export default function AdminPage() {
   }
 
   async function sendCalendly(email: string, name: string, id: number) {
+    console.log('sendCalendly called:', { email, name, id });
     try {
       const res = await fetch('/api/send-calendly', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name }),
       });
+      console.log('sendCalendly response:', res.status, res.ok);
+      const data = await res.json();
+      console.log('sendCalendly data:', data);
       if (res.ok) {
+        alert('Email sent successfully!');
         await updateContactStatus(id, true, 'submissions');
         loadSubmissions();
+      } else {
+        alert(`Failed to send email: ${data.error || 'Unknown error'}`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error('sendCalendly error:', e); 
+      alert('Error sending email. Check console for details.');
+    }
   }
 
   async function savePrompt() {
