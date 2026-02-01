@@ -1,15 +1,24 @@
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
-const CALENDLY_LINK = process.env.CALENDLY_LINK || 'https://calendly.com/ryansmallbussinessdoctor/15min';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-
 export async function POST(request: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const calendlyLink = process.env.CALENDLY_LINK || 'https://calendly.com/ryansmallbussinessdoctor/15min';
+  
+  // Debug: Log config (without exposing full API key)
+  console.log('Email config:', { 
+    hasApiKey: !!apiKey, 
+    apiKeyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'none',
+    fromEmail,
+    calendlyLink 
+  });
   
   if (!apiKey) {
-    console.error('RESEND_API_KEY is not configured');
-    return NextResponse.json({ error: 'Email service not configured - missing API key' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Email service not configured - missing RESEND_API_KEY',
+      debug: { hasApiKey: false, fromEmail }
+    }, { status: 500 });
   }
   
   const resend = new Resend(apiKey);
@@ -21,10 +30,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and name are required' }, { status: 400 });
     }
 
-    console.log(`Sending Calendly email to ${email} (${name})`);
+    console.log(`Attempting to send email from ${fromEmail} to ${email} (${name})`);
 
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to: email,
       subject: 'Schedule Your Free Tech Consultation',
       html: `
@@ -32,22 +41,29 @@ export async function POST(request: NextRequest) {
         <p>Thank you for your interest in scaling your business with AI and technology!</p>
         <p>I'd love to discuss how I can help you overcome the challenges you're facing.</p>
         <p>Please schedule a free consultation using the link below:</p>
-        <p><a href="${CALENDLY_LINK}" style="display: inline-block; padding: 12px 24px; background-color: #0071e3; color: white; text-decoration: none; border-radius: 5px;">Schedule a Meeting</a></p>
+        <p><a href="${calendlyLink}" style="display: inline-block; padding: 12px 24px; background-color: #0071e3; color: white; text-decoration: none; border-radius: 5px;">Schedule a Meeting</a></p>
         <p>Looking forward to speaking with you!</p>
         <p>Best regards,<br>Ryan</p>
       `
     });
 
     if (error) {
-      console.error('Resend API error:', error);
-      return NextResponse.json({ error: error.message || 'Failed to send email' }, { status: 500 });
+      console.error('Resend API error:', JSON.stringify(error));
+      return NextResponse.json({ 
+        error: error.message || 'Failed to send email',
+        resendError: error,
+        debug: { fromEmail, toEmail: email }
+      }, { status: 500 });
     }
 
     console.log('Email sent successfully:', data);
     return NextResponse.json({ success: true, message: 'Email sent successfully', data });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Catch error:', error);
     const message = error instanceof Error ? error.message : 'Failed to send email';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ 
+      error: message,
+      debug: { fromEmail, type: error instanceof Error ? error.name : 'unknown' }
+    }, { status: 500 });
   }
 }
