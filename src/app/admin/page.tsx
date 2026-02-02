@@ -50,6 +50,9 @@ export default function AdminPage() {
   const [promptDescription, setPromptDescription] = useState('');
   const [promptTags, setPromptTags] = useState('');
   const [promptContent, setPromptContent] = useState('');
+  
+  // Confirmation modal state for sending Calendly
+  const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -105,8 +108,19 @@ export default function AdminPage() {
     } catch (e) { console.error(e); }
   }
 
+  function handleSendCalendly(sub: Submission) {
+    if (sub.contacted) {
+      // Show confirmation modal if already contacted
+      setConfirmModal({ show: true, submission: sub });
+    } else {
+      // Send directly if not contacted yet
+      sendCalendly(sub.email, sub.name, sub.id);
+    }
+  }
+
   async function sendCalendly(email: string, name: string, id: number) {
     console.log('sendCalendly called:', { email, name, id });
+    setConfirmModal({ show: false, submission: null });
     try {
       const res = await fetch('/api/send-calendly', {
         method: 'POST',
@@ -262,10 +276,10 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <button 
-                    onClick={() => sendCalendly(sub.email, sub.name, sub.id)} 
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-700 whitespace-nowrap"
+                    onClick={() => handleSendCalendly(sub)} 
+                    className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer whitespace-nowrap ${sub.contacted ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                   >
-                    Send Calendly
+                    {sub.contacted ? 'Resend Calendly' : 'Send Calendly'}
                   </button>
                 </div>
                 
@@ -440,6 +454,38 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal for Resending Calendly */}
+      {confirmModal.show && confirmModal.submission && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Already Contacted</h2>
+              <p className="text-gray-600">
+                You&apos;ve already sent a Calendly email to <strong>{confirmModal.submission.name}</strong>.
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                Are you sure you want to send another one?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmModal({ show: false, submission: null })}
+                className="flex-1 px-4 py-3 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => sendCalendly(confirmModal.submission!.email, confirmModal.submission!.name, confirmModal.submission!.id)}
+                className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 cursor-pointer"
+              >
+                Send Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
