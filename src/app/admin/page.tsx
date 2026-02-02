@@ -238,12 +238,15 @@ export default function AdminPage() {
           Refresh Data
         </button>
 
-        {/* Submissions Cards */}
+        {/* Submissions Cards - unchecked first, then checked at bottom */}
         <div className="space-y-4 mb-16">
           {submissions.length === 0 ? (
             <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No submissions yet</div>
           ) : (
-            submissions.map(sub => (
+            [...submissions].sort((a, b) => {
+              if (a.contacted === b.contacted) return 0;
+              return a.contacted ? 1 : -1;
+            }).map(sub => (
               <div key={sub.id} className={`bg-white rounded-xl p-5 md:p-6 shadow-sm border-l-4 ${sub.contacted ? 'border-green-500 bg-green-50/50' : 'border-blue-500'}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
@@ -308,12 +311,15 @@ export default function AdminPage() {
           Refresh Class Data
         </button>
 
-        {/* Class Signups Cards */}
+        {/* Class Signups Cards - unchecked first, then checked at bottom */}
         <div className="space-y-4 mb-16">
           {classSignups.length === 0 ? (
             <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No class signups yet</div>
           ) : (
-            classSignups.map(s => (
+            [...classSignups].sort((a, b) => {
+              if (a.contacted === b.contacted) return 0;
+              return a.contacted ? 1 : -1;
+            }).map(s => (
               <div key={s.id} className={`bg-white rounded-xl p-5 md:p-6 shadow-sm border-l-4 ${s.contacted ? 'border-green-500 bg-green-50/50' : 'border-purple-500'}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
