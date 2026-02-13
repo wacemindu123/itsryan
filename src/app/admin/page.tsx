@@ -53,6 +53,9 @@ export default function AdminPage() {
   
   // Confirmation modal state for sending Calendly
   const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts'>('submissions');
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -230,8 +233,45 @@ export default function AdminPage() {
 
         <Link href="/" className="inline-block mb-5 text-blue-600 font-medium hover:underline">← Back to Website</Link>
 
-        <h1 className="text-4xl font-semibold mb-2">Form Submissions</h1>
-        <p className="text-gray-500 mb-10">All responses from the business scaling form</p>
+        {/* Tab Navigation */}
+        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('submissions')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'submissions'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📋 Submissions ({submissions.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('signups')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'signups'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🎓 Class Signups ({classSignups.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('prompts')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'prompts'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            ✨ Prompts ({prompts.length})
+          </button>
+        </div>
+
+        {/* Submissions Tab */}
+        {activeTab === 'submissions' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">Form Submissions</h1>
+            <p className="text-gray-500 mb-10">All responses from the business scaling form</p>
 
         <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
           <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
@@ -302,9 +342,14 @@ export default function AdminPage() {
             ))
           )}
         </div>
+          </>
+        )}
 
-        <h1 className="text-4xl font-semibold mb-2 mt-16">AI Class Signups</h1>
-        <p className="text-gray-500 mb-10">All signups for Free AI Classes</p>
+        {/* Class Signups Tab */}
+        {activeTab === 'signups' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">AI Class Signups</h1>
+            <p className="text-gray-500 mb-10">All signups for Free AI Classes</p>
 
         <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
           <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
@@ -379,9 +424,13 @@ export default function AdminPage() {
             ))
           )}
         </div>
+          </>
+        )}
 
-        <div className="mt-16">
-          <h1 className="text-4xl font-semibold mb-2">Prompt Library</h1>
+        {/* Prompts Tab */}
+        {activeTab === 'prompts' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">Prompt Library</h1>
           <p className="text-gray-500 mb-10">Manage prompts that appear on the website</p>
 
           <div className="bg-white p-8 rounded-xl mb-6 shadow-sm">
@@ -452,7 +501,8 @@ export default function AdminPage() {
               </div>
             ))
           )}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Confirmation Modal for Resending Calendly */}
