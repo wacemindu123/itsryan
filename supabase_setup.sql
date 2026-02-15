@@ -3,6 +3,7 @@ CREATE TABLE submissions (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
+  phone TEXT,
   business TEXT NOT NULL,
   scaling_challenge TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())

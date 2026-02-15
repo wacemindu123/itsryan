@@ -10,6 +10,7 @@ interface Submission {
   id: number;
   name: string;
   email: string;
+  phone: string;
   business: string;
   scaling_challenge: string;
   created_at: string;
@@ -323,10 +324,14 @@ export default function AdminPage() {
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
                     <p className="text-sm font-medium text-gray-900 break-all">{sub.email}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Phone</p>
+                    <p className="text-sm font-medium text-gray-900">{sub.phone || '-'}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Business</p>

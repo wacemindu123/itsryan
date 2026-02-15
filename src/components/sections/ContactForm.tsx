@@ -95,6 +95,18 @@ export default function ContactForm() {
               </div>
               <div className="mb-6">
                 <label className="block mb-2 font-medium text-[var(--text-primary)] text-[17px] tracking-[-0.2px]">
+                  Phone
+                </label>
+                <input 
+                  type="tel" 
+                  name="phone" 
+                  required
+                  placeholder="(555) 123-4567"
+                  className="w-full py-[14px] px-4 bg-[var(--background)] border border-black/10 rounded-xl text-[var(--text-primary)] text-[17px] transition-all focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block mb-2 font-medium text-[var(--text-primary)] text-[17px] tracking-[-0.2px]">
                   Business
                 </label>
                 <input 

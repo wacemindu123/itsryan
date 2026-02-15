@@ -11,9 +11,9 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json();
-    const { name, email, business, 'scaling-challenge': scalingChallenge } = body;
+    const { name, email, phone, business, 'scaling-challenge': scalingChallenge } = body;
 
-    if (!name || !email || !business || !scalingChallenge) {
+    if (!name || !email || !phone || !business || !scalingChallenge) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       .insert([{
         name,
         email,
+        phone,
         business,
         scaling_challenge: scalingChallenge,
       }])
