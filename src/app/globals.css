@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
   --text-primary: #1d1d1f;
@@ -7,6 +8,12 @@
   --accent-hover: #0077ed;
   --background: #fbfbfd;
   --surface: #ffffff;
+  --primary: oklch(0.62 0.12 35);
+  --primary-foreground: #ffffff;
+  --muted: #e5e5e5;
+  --muted-foreground: #86868b;
+  --foreground: #1d1d1f;
+  --destructive-foreground: oklch(0.577 0.245 27.325);
 }
 
 @theme inline {
@@ -16,6 +23,11 @@
   --color-accent-hover: var(--accent-hover);
   --color-surface: var(--surface);
   --color-text-secondary: var(--text-secondary);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
 }
 
 body {

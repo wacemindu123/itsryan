@@ -38,13 +38,31 @@ interface Prompt {
   content: string;
 }
 
+interface Business {
+  id: number;
+  name: string;
+  thumbnail: string | null;
+  website_url: string | null;
+  description: string | null;
+  value_delivered: number;
+  revenue_generated: number;
+  color: string;
+  video_links: string[];
+  github_links: string[];
+  additional_links: string[];
+  featured: boolean;
+  display_order: number;
+}
+
 export default function AdminPage() {
   const { isSignedIn, isLoaded } = useUser();
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [classSignups, setClassSignups] = useState<ClassSignup[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [editingPromptId, setEditingPromptId] = useState<number | null>(null);
+  const [editingBusinessId, setEditingBusinessId] = useState<number | null>(null);
   
   const [promptTitle, setPromptTitle] = useState('');
   const [promptIcon, setPromptIcon] = useState('');
@@ -52,11 +70,25 @@ export default function AdminPage() {
   const [promptTags, setPromptTags] = useState('');
   const [promptContent, setPromptContent] = useState('');
   
+  // Business form state
+  const [businessName, setBusinessName] = useState('');
+  const [businessThumbnail, setBusinessThumbnail] = useState('');
+  const [businessWebsite, setBusinessWebsite] = useState('');
+  const [businessDescription, setBusinessDescription] = useState('');
+  const [businessValueDelivered, setBusinessValueDelivered] = useState('');
+  const [businessRevenueGenerated, setBusinessRevenueGenerated] = useState('');
+  const [businessColor, setBusinessColor] = useState('#3B82F6');
+  const [businessVideoLinks, setBusinessVideoLinks] = useState('');
+  const [businessGithubLinks, setBusinessGithubLinks] = useState('');
+  const [businessAdditionalLinks, setBusinessAdditionalLinks] = useState('');
+  const [businessFeatured, setBusinessFeatured] = useState(false);
+  const [businessDisplayOrder, setBusinessDisplayOrder] = useState('');
+  
   // Confirmation modal state for sending Calendly
   const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts' | 'businesses'>('submissions');
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -79,11 +111,19 @@ export default function AdminPage() {
     } catch (e) { console.error(e); }
   }, []);
 
+  const loadBusinesses = useCallback(async () => {
+    try {
+      const res = await fetch('/api/businesses');
+      if (res.ok) setBusinesses(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
   useEffect(() => {
     if (isSignedIn) {
       loadSubmissions();
       loadClassSignups();
       loadPrompts();
+      loadBusinesses();
       
       const interval1 = setInterval(loadSubmissions, 30000);
       const interval2 = setInterval(loadClassSignups, 30000);
@@ -93,7 +133,7 @@ export default function AdminPage() {
         clearInterval(interval2);
       };
     }
-  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts]);
+  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses]);
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
@@ -199,6 +239,85 @@ export default function AdminPage() {
     setPromptContent('');
   }
 
+  async function saveBusiness() {
+    if (!businessName) {
+      alert('Please fill in Business Name');
+      return;
+    }
+
+    const data = {
+      name: businessName,
+      thumbnail: businessThumbnail || null,
+      website_url: businessWebsite || null,
+      description: businessDescription || null,
+      value_delivered: parseInt(businessValueDelivered) || 0,
+      revenue_generated: parseInt(businessRevenueGenerated) || 0,
+      color: businessColor || '#3B82F6',
+      video_links: businessVideoLinks ? businessVideoLinks.split(',').map(s => s.trim()).filter(s => s) : [],
+      github_links: businessGithubLinks ? businessGithubLinks.split(',').map(s => s.trim()).filter(s => s) : [],
+      additional_links: businessAdditionalLinks ? businessAdditionalLinks.split(',').map(s => s.trim()).filter(s => s) : [],
+      featured: businessFeatured,
+      display_order: parseInt(businessDisplayOrder) || 0,
+      id: editingBusinessId
+    };
+
+    try {
+      const res = await fetch('/api/businesses', {
+        method: editingBusinessId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        cancelBusinessEdit();
+        loadBusinesses();
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function deleteBusiness(id: number, name: string) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    try {
+      await fetch('/api/businesses', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      loadBusinesses();
+    } catch (e) { console.error(e); }
+  }
+
+  function editBusiness(business: Business) {
+    setEditingBusinessId(business.id);
+    setBusinessName(business.name);
+    setBusinessThumbnail(business.thumbnail || '');
+    setBusinessWebsite(business.website_url || '');
+    setBusinessDescription(business.description || '');
+    setBusinessValueDelivered(business.value_delivered?.toString() || '');
+    setBusinessRevenueGenerated(business.revenue_generated?.toString() || '');
+    setBusinessColor(business.color || '#3B82F6');
+    setBusinessVideoLinks((business.video_links || []).join(', '));
+    setBusinessGithubLinks((business.github_links || []).join(', '));
+    setBusinessAdditionalLinks((business.additional_links || []).join(', '));
+    setBusinessFeatured(business.featured || false);
+    setBusinessDisplayOrder(business.display_order?.toString() || '');
+  }
+
+  function cancelBusinessEdit() {
+    setEditingBusinessId(null);
+    setBusinessName('');
+    setBusinessThumbnail('');
+    setBusinessWebsite('');
+    setBusinessDescription('');
+    setBusinessValueDelivered('');
+    setBusinessRevenueGenerated('');
+    setBusinessColor('#3B82F6');
+    setBusinessVideoLinks('');
+    setBusinessGithubLinks('');
+    setBusinessAdditionalLinks('');
+    setBusinessFeatured(false);
+    setBusinessDisplayOrder('');
+  }
+
   const today = new Date().toDateString();
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
   const todayCount = submissions.filter(s => new Date(s.created_at).toDateString() === today).length;
@@ -244,7 +363,7 @@ export default function AdminPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            📋 Submissions ({submissions.length})
+            Submissions ({submissions.length})
           </button>
           <button
             onClick={() => setActiveTab('signups')}
@@ -254,7 +373,7 @@ export default function AdminPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🎓 Class Signups ({classSignups.length})
+            Class Signups ({classSignups.length})
           </button>
           <button
             onClick={() => setActiveTab('prompts')}
@@ -264,7 +383,17 @@ export default function AdminPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            ✨ Prompts ({prompts.length})
+            Prompts ({prompts.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('businesses')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'businesses'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Businesses ({businesses.length})
           </button>
         </div>
 
@@ -399,7 +528,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${s.format === 'in-person' ? 'bg-green-100 text-green-700' : s.format === 'virtual' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                    {s.format === 'in-person' ? '📍 In-Person' : s.format === 'virtual' ? '💻 Virtual' : '🔄 Either'}
+                    {s.format === 'in-person' ? 'In-Person' : s.format === 'virtual' ? 'Virtual' : 'Either'}
                   </span>
                 </div>
                 
@@ -508,6 +637,114 @@ export default function AdminPage() {
           )}
           </>
         )}
+
+        {/* Businesses Tab */}
+        {activeTab === 'businesses' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">Business Management</h1>
+            <p className="text-gray-500 mb-10">Manage businesses for the Value Meters and Showcase</p>
+
+            <div className="bg-white p-8 rounded-xl mb-6 shadow-sm">
+              <h3 className="text-xl mb-5">{editingBusinessId ? 'Edit Business' : 'Add New Business'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Business Name *</label>
+                  <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g., Acme Corp" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Thumbnail URL</label>
+                  <input value={businessThumbnail} onChange={(e) => setBusinessThumbnail(e.target.value)} placeholder="https://..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Website URL</label>
+                  <input value={businessWebsite} onChange={(e) => setBusinessWebsite(e.target.value)} placeholder="https://..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Color (for meters)</label>
+                  <input type="color" value={businessColor} onChange={(e) => setBusinessColor(e.target.value)} className="w-full h-[46px] p-1 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Value Delivered ($)</label>
+                  <input type="number" value={businessValueDelivered} onChange={(e) => setBusinessValueDelivered(e.target.value)} placeholder="0" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Revenue Generated ($)</label>
+                  <input type="number" value={businessRevenueGenerated} onChange={(e) => setBusinessRevenueGenerated(e.target.value)} placeholder="0" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Display Order</label>
+                  <input type="number" value={businessDisplayOrder} onChange={(e) => setBusinessDisplayOrder(e.target.value)} placeholder="0" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div className="flex items-center gap-3 pt-6">
+                  <input type="checkbox" id="featured" checked={businessFeatured} onChange={(e) => setBusinessFeatured(e.target.checked)} className="w-5 h-5 accent-blue-600" />
+                  <label htmlFor="featured" className="font-medium text-sm">Featured on Homepage</label>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1.5 font-medium text-sm">Description</label>
+                <textarea value={businessDescription} onChange={(e) => setBusinessDescription(e.target.value)} placeholder="Brief description..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600 min-h-[80px]" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Video Links (comma-separated)</label>
+                  <input value={businessVideoLinks} onChange={(e) => setBusinessVideoLinks(e.target.value)} placeholder="https://youtube.com/..., ..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">GitHub Links (comma-separated)</label>
+                  <input value={businessGithubLinks} onChange={(e) => setBusinessGithubLinks(e.target.value)} placeholder="https://github.com/..., ..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Additional Links (comma-separated)</label>
+                  <input value={businessAdditionalLinks} onChange={(e) => setBusinessAdditionalLinks(e.target.value)} placeholder="https://..., ..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={saveBusiness} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-700">
+                  {editingBusinessId ? 'Update Business' : 'Add Business'}
+                </button>
+                {editingBusinessId && (
+                  <button onClick={cancelBusinessEdit} className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium cursor-pointer hover:bg-gray-200">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <h3 className="mb-4 font-semibold">Existing Businesses</h3>
+            {businesses.length === 0 ? (
+              <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No businesses yet. Add your first business above!</div>
+            ) : (
+              <div className="space-y-4">
+                {businesses.map(business => (
+                  <div key={business.id} className="bg-white p-6 rounded-xl shadow-sm border-l-4" style={{ borderLeftColor: business.color }}>
+                    <div className="flex flex-wrap justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold">{business.name}</h3>
+                          {business.featured && <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-medium">Featured</span>}
+                        </div>
+                        {business.description && <p className="text-gray-500 text-sm mb-3">{business.description}</p>}
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <span className="text-green-600">Value: ${(business.value_delivered || 0).toLocaleString()}</span>
+                          <span className="text-blue-600">Revenue: ${(business.revenue_generated || 0).toLocaleString()}</span>
+                          <span className="text-gray-500">Order: {business.display_order}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => editBusiness(business)} className="bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-600 hover:text-white hover:border-blue-600">
+                          Edit
+                        </button>
+                        <button onClick={() => deleteBusiness(business.id, business.name)} className="bg-gray-50 text-red-500 border border-red-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-red-500 hover:text-white">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Confirmation Modal for Resending Calendly */}
@@ -515,7 +752,7 @@ export default function AdminPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6">
-              <div className="text-5xl mb-4">⚠️</div>
+              <div className="text-5xl mb-4 text-yellow-500">!</div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Already Contacted</h2>
               <p className="text-gray-600">
                 You&apos;ve already sent a Calendly email to <strong>{confirmModal.submission.name}</strong>.

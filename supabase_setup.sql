@@ -89,3 +89,38 @@ CREATE POLICY "Enable read for all users on prompts" ON prompts
 
 CREATE POLICY "Enable all operations for prompts" ON prompts
   FOR ALL USING (true);
+
+-- =============================================
+-- BUSINESSES TABLE (for Value Meters & Showcase)
+-- =============================================
+
+CREATE TABLE businesses (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  thumbnail TEXT,
+  website_url TEXT,
+  description TEXT,
+  value_delivered INTEGER DEFAULT 0,
+  revenue_generated INTEGER DEFAULT 0,
+  color TEXT DEFAULT '#3B82F6',
+  video_links TEXT[] DEFAULT '{}',
+  github_links TEXT[] DEFAULT '{}',
+  additional_links TEXT[] DEFAULT '{}',
+  featured BOOLEAN DEFAULT FALSE,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Add index for display order sorting
+CREATE INDEX idx_businesses_display_order ON businesses(display_order ASC);
+
+-- Enable Row Level Security
+ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for businesses
+CREATE POLICY "Enable read for all users on businesses" ON businesses
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for businesses" ON businesses
+  FOR ALL USING (true);

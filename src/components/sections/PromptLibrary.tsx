@@ -92,7 +92,7 @@ export default function PromptLibrary() {
                   key={prompt.id}
                   className="bg-[var(--background)] p-6 md:p-8 rounded-[18px] border border-black/5 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:border-[var(--accent)] transition-all cursor-pointer"
                 >
-                  <span className="text-[32px] md:text-[40px] mb-3 md:mb-4 block">{prompt.icon || '📝'}</span>
+                  <span className="text-[32px] md:text-[40px] mb-3 md:mb-4 block">{prompt.icon || 'P'}</span>
                   <h3 className="text-lg md:text-xl mb-2 md:mb-3 text-[var(--text-primary)] font-semibold tracking-[-0.3px]">{prompt.title}</h3>
                   <p className="text-[var(--text-secondary)] text-[14px] md:text-[15px] leading-[1.5] mb-4 md:mb-5">{prompt.description}</p>
                   <div className="flex flex-wrap gap-2 mb-5">

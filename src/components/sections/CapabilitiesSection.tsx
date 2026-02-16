@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { MessageSquare, Zap, Target, Rocket, BarChart3, Link2, Sparkles, LucideIcon } from 'lucide-react';
 
-const capabilities = [
-  { icon: '💬', title: 'AI Chatbots', description: 'Answer questions 24/7. Reduced customer service time 34% at a major company.' },
-  { icon: '⚡', title: 'Automation', description: 'Stop wasting time. Save 5+ hours per week on repetitive tasks.' },
-  { icon: '🎯', title: 'Smart Recommendations', description: 'Show the right products. Increased sales 5%, ad revenue 10x.' },
-  { icon: '🚀', title: 'Online Ordering', description: '24/7 ordering from phones. Improved conversion by 17%.' },
-  { icon: '📊', title: 'Dashboards', description: 'All your numbers in one place. Make faster decisions.' },
-  { icon: '🔗', title: 'Integrations', description: 'Connect your tools. Cut manual work by 34%.' },
-  { icon: '✨', title: 'Anything Else', description: "Got something specific? I'll build it custom for your business." },
+const capabilities: { icon: LucideIcon; title: string; description: string }[] = [
+  { icon: MessageSquare, title: 'AI Chatbots', description: 'Answer questions 24/7. Reduced customer service time 34% at a major company.' },
+  { icon: Zap, title: 'Automation', description: 'Stop wasting time. Save 5+ hours per week on repetitive tasks.' },
+  { icon: Target, title: 'Smart Recommendations', description: 'Show the right products. Increased sales 5%, ad revenue 10x.' },
+  { icon: Rocket, title: 'Online Ordering', description: '24/7 ordering from phones. Improved conversion by 17%.' },
+  { icon: BarChart3, title: 'Dashboards', description: 'All your numbers in one place. Make faster decisions.' },
+  { icon: Link2, title: 'Integrations', description: 'Connect your tools. Cut manual work by 34%.' },
+  { icon: Sparkles, title: 'Anything Else', description: "Got something specific? I'll build it custom for your business." },
 ];
 
 export default function CapabilitiesSection() {
@@ -53,7 +54,7 @@ export default function CapabilitiesSection() {
               key={index}
               className="bg-[var(--surface)] p-6 sm:p-8 md:p-12 md:px-8 rounded-[18px] border border-black/5 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-400"
             >
-              <span className="text-[40px] md:text-[52px] mb-4 md:mb-6 block">{cap.icon}</span>
+              <cap.icon className="w-10 h-10 md:w-13 md:h-13 mb-4 md:mb-6 text-[var(--accent)]" strokeWidth={1.5} />
               <h3 className="text-xl md:text-2xl mb-2 md:mb-3 text-[var(--text-primary)] font-semibold tracking-[-0.3px]">{cap.title}</h3>
               <p className="text-[var(--text-secondary)] text-[15px] md:text-[17px] leading-[1.5] font-normal">{cap.description}</p>
             </div>
