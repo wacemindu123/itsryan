@@ -83,6 +83,7 @@ export default function AdminPage() {
   const [businessAdditionalLinks, setBusinessAdditionalLinks] = useState('');
   const [businessFeatured, setBusinessFeatured] = useState(false);
   const [businessDisplayOrder, setBusinessDisplayOrder] = useState('');
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   
   // Confirmation modal state for sending Calendly
   const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
@@ -316,6 +317,34 @@ export default function AdminPage() {
     setBusinessAdditionalLinks('');
     setBusinessFeatured(false);
     setBusinessDisplayOrder('');
+  }
+
+  async function handleThumbnailUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingThumbnail(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setBusinessThumbnail(data.url);
+      } else {
+        alert(data.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingThumbnail(false);
+    }
   }
 
   const today = new Date().toDateString();
@@ -652,8 +681,20 @@ export default function AdminPage() {
                   <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g., Acme Corp" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
                 </div>
                 <div>
-                  <label className="block mb-1.5 font-medium text-sm">Thumbnail URL</label>
-                  <input value={businessThumbnail} onChange={(e) => setBusinessThumbnail(e.target.value)} placeholder="https://..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                  <label className="block mb-1.5 font-medium text-sm">Thumbnail</label>
+                  <div className="flex gap-2">
+                    <input value={businessThumbnail} onChange={(e) => setBusinessThumbnail(e.target.value)} placeholder="URL or upload..." className="flex-1 p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                    <label className={`px-4 py-3 rounded-lg text-sm font-medium cursor-pointer transition-colors ${uploadingThumbnail ? 'bg-gray-300 text-gray-500' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}>
+                      {uploadingThumbnail ? 'Uploading...' : 'Upload'}
+                      <input type="file" accept="image/*" onChange={handleThumbnailUpload} disabled={uploadingThumbnail} className="hidden" />
+                    </label>
+                  </div>
+                  {businessThumbnail && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <img src={businessThumbnail} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+                      <button type="button" onClick={() => setBusinessThumbnail('')} className="text-red-500 text-xs hover:underline">Remove</button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block mb-1.5 font-medium text-sm">Website URL</label>
