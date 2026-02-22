@@ -118,6 +118,17 @@ export default function ContactForm() {
               </div>
               <div className="mb-6">
                 <label className="block mb-2 font-medium text-[var(--text-primary)] text-[17px] tracking-[-0.2px]">
+                  Website
+                </label>
+                <input 
+                  type="url" 
+                  name="website" 
+                  placeholder="https://yourbusiness.com"
+                  className="w-full py-[14px] px-4 bg-[var(--background)] border border-black/10 rounded-xl text-[var(--text-primary)] text-[17px] transition-all focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block mb-2 font-medium text-[var(--text-primary)] text-[17px] tracking-[-0.2px]">
                   What you believe is impeding your ability to scale your business?
                 </label>
                 <textarea 

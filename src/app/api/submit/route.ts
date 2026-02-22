@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json();
-    const { name, email, phone, business, 'scaling-challenge': scalingChallenge } = body;
+    const { name, email, phone, business, website, 'scaling-challenge': scalingChallenge } = body;
 
     if (!name || !email || !phone || !business || !scalingChallenge) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
         email,
         phone,
         business,
+        website: website || null,
         scaling_challenge: scalingChallenge,
       }])
       .select();

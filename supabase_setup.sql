@@ -5,9 +5,13 @@ CREATE TABLE submissions (
   email TEXT NOT NULL,
   phone TEXT,
   business TEXT NOT NULL,
+  website TEXT,
   scaling_challenge TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
 );
+
+-- Add website column if table already exists
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS website TEXT;
 
 -- Add an index on created_at for faster sorting
 CREATE INDEX idx_submissions_created_at ON submissions(created_at DESC);
@@ -123,4 +127,54 @@ CREATE POLICY "Enable read for all users on businesses" ON businesses
   FOR SELECT USING (true);
 
 CREATE POLICY "Enable all operations for businesses" ON businesses
+  FOR ALL USING (true);
+
+-- =============================================
+-- NEWSLETTER SUBSCRIBERS TABLE
+-- =============================================
+
+CREATE TABLE newsletter_subscribers (
+  id SERIAL PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT,
+  name TEXT,
+  subscribed BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Add index for email lookups
+CREATE INDEX idx_newsletter_subscribers_email ON newsletter_subscribers(email);
+
+-- Enable Row Level Security
+ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for newsletter_subscribers
+CREATE POLICY "Enable read for all users on newsletter_subscribers" ON newsletter_subscribers
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for newsletter_subscribers" ON newsletter_subscribers
+  FOR ALL USING (true);
+
+CREATE POLICY "Enable insert for anon users on newsletter_subscribers" ON newsletter_subscribers
+  FOR INSERT WITH CHECK (true);
+
+-- =============================================
+-- NEWSLETTER DRAFTS TABLE (for AI-generated newsletters)
+-- =============================================
+
+CREATE TABLE newsletter_drafts (
+  id SERIAL PRIMARY KEY,
+  subject TEXT NOT NULL,
+  content TEXT NOT NULL,
+  sms_content TEXT,
+  status TEXT DEFAULT 'draft', -- draft, approved, sent
+  approved_at TIMESTAMP WITH TIME ZONE,
+  sent_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Enable Row Level Security
+ALTER TABLE newsletter_drafts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable all operations for newsletter_drafts" ON newsletter_drafts
   FOR ALL USING (true);

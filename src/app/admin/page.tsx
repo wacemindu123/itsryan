@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 interface Submission {
   id: number;
   name: string;
+  website: string | null;
   email: string;
   phone: string;
   business: string;
@@ -54,6 +55,26 @@ interface Business {
   display_order: number;
 }
 
+interface NewsletterSubscriber {
+  id: number;
+  email: string;
+  phone: string | null;
+  name: string | null;
+  subscribed: boolean;
+  created_at: string;
+}
+
+interface NewsletterDraft {
+  id: number;
+  subject: string;
+  content: string;
+  sms_content: string | null;
+  status: string;
+  approved_at: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
 export default function AdminPage() {
   const { isSignedIn, isLoaded } = useUser();
   
@@ -61,8 +82,12 @@ export default function AdminPage() {
   const [classSignups, setClassSignups] = useState<ClassSignup[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
+  const [drafts, setDrafts] = useState<NewsletterDraft[]>([]);
   const [editingPromptId, setEditingPromptId] = useState<number | null>(null);
   const [editingBusinessId, setEditingBusinessId] = useState<number | null>(null);
+  const [generatingNewsletter, setGeneratingNewsletter] = useState(false);
+  const [sendingNewsletter, setSendingNewsletter] = useState(false);
   
   const [promptTitle, setPromptTitle] = useState('');
   const [promptIcon, setPromptIcon] = useState('');
@@ -89,7 +114,7 @@ export default function AdminPage() {
   const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts' | 'businesses'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts' | 'businesses' | 'newsletter'>('submissions');
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -119,12 +144,28 @@ export default function AdminPage() {
     } catch (e) { console.error(e); }
   }, []);
 
+  const loadSubscribers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/newsletter-signup');
+      if (res.ok) setSubscribers(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
+  const loadDrafts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/newsletter-drafts');
+      if (res.ok) setDrafts(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
   useEffect(() => {
     if (isSignedIn) {
       loadSubmissions();
       loadClassSignups();
       loadPrompts();
       loadBusinesses();
+      loadSubscribers();
+      loadDrafts();
       
       const interval1 = setInterval(loadSubmissions, 30000);
       const interval2 = setInterval(loadClassSignups, 30000);
@@ -134,7 +175,7 @@ export default function AdminPage() {
         clearInterval(interval2);
       };
     }
-  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses]);
+  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses, loadSubscribers, loadDrafts]);
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
@@ -424,6 +465,16 @@ export default function AdminPage() {
           >
             Businesses ({businesses.length})
           </button>
+          <button
+            onClick={() => setActiveTab('newsletter')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'newsletter'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Newsletter ({subscribers.length})
+          </button>
         </div>
 
         {/* Submissions Tab */}
@@ -482,7 +533,7 @@ export default function AdminPage() {
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
                     <p className="text-sm font-medium text-gray-900 break-all">{sub.email}</p>
@@ -494,6 +545,14 @@ export default function AdminPage() {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Business</p>
                     <p className="text-sm font-medium text-gray-900">{sub.business}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Website</p>
+                    {sub.website ? (
+                      <a href={sub.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline break-all">{sub.website}</a>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">-</p>
+                    )}
                   </div>
                 </div>
                 
@@ -782,6 +841,208 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Newsletter Tab */}
+        {activeTab === 'newsletter' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">Newsletter Management</h1>
+            <p className="text-gray-500 mb-10">Manage subscribers and send AI-generated newsletters</p>
+
+            <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
+              <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+                <div className="text-2xl md:text-4xl font-semibold text-blue-600 mb-1">{subscribers.filter(s => s.subscribed).length}</div>
+                <div className="text-xs md:text-sm text-gray-500">Active Subscribers</div>
+              </div>
+              <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+                <div className="text-2xl md:text-4xl font-semibold text-green-600 mb-1">{subscribers.filter(s => s.phone).length}</div>
+                <div className="text-xs md:text-sm text-gray-500">SMS Enabled</div>
+              </div>
+              <div className="bg-white p-4 md:p-6 rounded-xl text-center shadow-sm">
+                <div className="text-2xl md:text-4xl font-semibold text-purple-600 mb-1">{drafts.filter(d => d.status === 'sent').length}</div>
+                <div className="text-xs md:text-sm text-gray-500">Newsletters Sent</div>
+              </div>
+            </div>
+
+            {/* Generate Newsletter Section */}
+            <div className="bg-white p-8 rounded-xl mb-6 shadow-sm">
+              <h3 className="text-xl mb-5">Generate AI Newsletter</h3>
+              <p className="text-gray-500 mb-4">Click below to generate a new bi-weekly newsletter about AI tips for small businesses.</p>
+              <button
+                onClick={async () => {
+                  setGeneratingNewsletter(true);
+                  try {
+                    const res = await fetch('/api/newsletter-generate', { method: 'POST' });
+                    if (res.ok) {
+                      loadDrafts();
+                      alert('Newsletter draft generated! Check below to preview and approve.');
+                    } else {
+                      const data = await res.json();
+                      alert(data.error || 'Failed to generate newsletter');
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    alert('Error generating newsletter');
+                  } finally {
+                    setGeneratingNewsletter(false);
+                  }
+                }}
+                disabled={generatingNewsletter}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {generatingNewsletter ? 'Generating...' : 'Generate Newsletter'}
+              </button>
+            </div>
+
+            {/* Drafts Section */}
+            <h3 className="mb-4 font-semibold">Newsletter Drafts</h3>
+            {drafts.length === 0 ? (
+              <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm mb-8">No drafts yet. Generate your first newsletter above!</div>
+            ) : (
+              <div className="space-y-4 mb-8">
+                {drafts.map(draft => (
+                  <div key={draft.id} className={`bg-white p-6 rounded-xl shadow-sm border-l-4 ${draft.status === 'sent' ? 'border-green-500' : draft.status === 'approved' ? 'border-yellow-500' : 'border-blue-500'}`}>
+                    <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                      <div>
+                        <h4 className="text-lg font-semibold">{draft.subject}</h4>
+                        <p className="text-sm text-gray-500">
+                          Created: {new Date(draft.created_at).toLocaleString()}
+                          {draft.sent_at && ` | Sent: ${new Date(draft.sent_at).toLocaleString()}`}
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        draft.status === 'sent' ? 'bg-green-100 text-green-700' :
+                        draft.status === 'approved' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {draft.status.charAt(0).toUpperCase() + draft.status.slice(1)}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg mb-4 max-h-40 overflow-y-auto">
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap">{draft.content.substring(0, 500)}...</div>
+                    </div>
+                    {draft.sms_content && (
+                      <div className="bg-purple-50 p-3 rounded-lg mb-4">
+                        <p className="text-xs text-purple-600 font-medium mb-1">SMS Version:</p>
+                        <p className="text-sm text-purple-800">{draft.sms_content}</p>
+                      </div>
+                    )}
+                    {draft.status === 'draft' && (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch('/api/newsletter-preview', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ draftId: draft.id }),
+                              });
+                              if (res.ok) {
+                                alert('Preview sent to your email!');
+                              } else {
+                                const data = await res.json();
+                                alert(data.error || 'Failed to send preview');
+                              }
+                            } catch (e) {
+                              console.error(e);
+                              alert('Error sending preview');
+                            }
+                          }}
+                          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-gray-200"
+                        >
+                          Send Preview to Me
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Approve this newsletter for sending?')) return;
+                            try {
+                              const res = await fetch('/api/newsletter-drafts', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: draft.id, status: 'approved' }),
+                              });
+                              if (res.ok) {
+                                loadDrafts();
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-yellow-600"
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    )}
+                    {draft.status === 'approved' && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Send newsletter to ${subscribers.filter(s => s.subscribed).length} subscribers?`)) return;
+                          setSendingNewsletter(true);
+                          try {
+                            const res = await fetch('/api/newsletter-send', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ draftId: draft.id }),
+                            });
+                            if (res.ok) {
+                              loadDrafts();
+                              alert('Newsletter sent successfully!');
+                            } else {
+                              const data = await res.json();
+                              alert(data.error || 'Failed to send newsletter');
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert('Error sending newsletter');
+                          } finally {
+                            setSendingNewsletter(false);
+                          }
+                        }}
+                        disabled={sendingNewsletter}
+                        className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {sendingNewsletter ? 'Sending...' : 'Send to All Subscribers'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Subscribers List */}
+            <h3 className="mb-4 font-semibold">Subscribers ({subscribers.length})</h3>
+            {subscribers.length === 0 ? (
+              <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No subscribers yet.</div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Email</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Phone</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Subscribed</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subscribers.map(sub => (
+                      <tr key={sub.id} className="border-t border-gray-100">
+                        <td className="p-4 text-sm">{sub.email}</td>
+                        <td className="p-4 text-sm">{sub.phone || '-'}</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${sub.subscribed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {sub.subscribed ? 'Active' : 'Unsubscribed'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm text-gray-500">{new Date(sub.created_at).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </>
