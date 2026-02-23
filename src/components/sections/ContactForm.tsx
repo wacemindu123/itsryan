@@ -121,9 +121,9 @@ export default function ContactForm() {
                   Website
                 </label>
                 <input 
-                  type="url" 
+                  type="text" 
                   name="website" 
-                  placeholder="https://yourbusiness.com"
+                  placeholder="yourbusiness.com"
                   className="w-full py-[14px] px-4 bg-[var(--background)] border border-black/10 rounded-xl text-[var(--text-primary)] text-[17px] transition-all focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
                 />
               </div>
