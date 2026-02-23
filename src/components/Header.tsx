@@ -18,7 +18,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-[var(--background)]/80 backdrop-blur-xl backdrop-saturate-[180%] border-b border-black/10">
       <nav className="flex justify-between items-center h-12 max-w-[980px] mx-auto px-5">
         <Link href="/" className="text-[21px] font-semibold text-[var(--text-primary)] tracking-[-0.5px]">
-          Ryan.py
+          ItsRyan.ai
         </Link>
         
         {/* Desktop Nav */}

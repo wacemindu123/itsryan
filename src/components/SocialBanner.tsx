@@ -35,7 +35,7 @@ export default function SocialBanner() {
 
   return (
     <div 
-      className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 shadow-lg animate-[slideDown_0.3s_ease-out] cursor-pointer"
+      className="fixed top-12 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 shadow-lg animate-[slideDown_0.3s_ease-out] cursor-pointer"
       onClick={scrollToProjects}
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
