@@ -26,6 +26,7 @@ export default function ProjectShowcase() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
+  const [hasCheckedUrl, setHasCheckedUrl] = useState(false);
 
   useEffect(() => {
     async function loadProjects() {
@@ -41,6 +42,34 @@ export default function ProjectShowcase() {
     }
     loadProjects();
   }, []);
+
+  // Check URL for project parameter and auto-open modal
+  useEffect(() => {
+    if (projects.length === 0 || hasCheckedUrl) return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectParam = urlParams.get('project');
+    
+    if (projectParam) {
+      // Try to find by ID first, then by name (slug)
+      let project = projects.find(p => p.id.toString() === projectParam);
+      if (!project) {
+        // Try matching by name (case-insensitive, with slug support)
+        const slug = projectParam.toLowerCase().replace(/-/g, ' ');
+        project = projects.find(p => p.name.toLowerCase() === slug || p.name.toLowerCase().replace(/\s+/g, '-') === projectParam.toLowerCase());
+      }
+      
+      if (project) {
+        setSelectedProject(project);
+        // Scroll to projects section
+        setTimeout(() => {
+          sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+    
+    setHasCheckedUrl(true);
+  }, [projects, hasCheckedUrl]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
