@@ -178,3 +178,57 @@ ALTER TABLE newsletter_drafts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Enable all operations for newsletter_drafts" ON newsletter_drafts
   FOR ALL USING (true);
+
+-- =============================================
+-- PROJECTS TABLE (for Project Showcase)
+-- =============================================
+
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  thumbnail TEXT,
+  status TEXT DEFAULT 'in_progress', -- in_progress, live, coming_soon
+  demo_url TEXT,
+  video_url TEXT,
+  tags TEXT[] DEFAULT '{}',
+  featured BOOLEAN DEFAULT FALSE,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Add index for display order sorting
+CREATE INDEX idx_projects_display_order ON projects(display_order ASC);
+
+-- Enable Row Level Security
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for projects
+CREATE POLICY "Enable read for all users on projects" ON projects
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for projects" ON projects
+  FOR ALL USING (true);
+
+-- =============================================
+-- PROJECT WAITLIST TABLE (for project-specific signups)
+-- =============================================
+
+CREATE TABLE project_waitlist (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  phone TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  UNIQUE(project_id, email)
+);
+
+-- Enable Row Level Security
+ALTER TABLE project_waitlist ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable all operations for project_waitlist" ON project_waitlist
+  FOR ALL USING (true);
+
+CREATE POLICY "Enable insert for anon users on project_waitlist" ON project_waitlist
+  FOR INSERT WITH CHECK (true);

@@ -75,6 +75,19 @@ interface NewsletterDraft {
   created_at: string;
 }
 
+interface Project {
+  id: number;
+  name: string;
+  description: string | null;
+  thumbnail: string | null;
+  status: string;
+  demo_url: string | null;
+  video_url: string | null;
+  tags: string[];
+  featured: boolean;
+  display_order: number;
+}
+
 export default function AdminPage() {
   const { isSignedIn, isLoaded } = useUser();
   
@@ -84,8 +97,10 @@ export default function AdminPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [drafts, setDrafts] = useState<NewsletterDraft[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [editingPromptId, setEditingPromptId] = useState<number | null>(null);
   const [editingBusinessId, setEditingBusinessId] = useState<number | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
   const [generatingNewsletter, setGeneratingNewsletter] = useState(false);
   const [sendingNewsletter, setSendingNewsletter] = useState(false);
   
@@ -110,11 +125,23 @@ export default function AdminPage() {
   const [businessDisplayOrder, setBusinessDisplayOrder] = useState('');
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   
+  // Project form state
+  const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [projectThumbnail, setProjectThumbnail] = useState('');
+  const [projectStatus, setProjectStatus] = useState('in_progress');
+  const [projectDemoUrl, setProjectDemoUrl] = useState('');
+  const [projectVideoUrl, setProjectVideoUrl] = useState('');
+  const [projectTags, setProjectTags] = useState('');
+  const [projectFeatured, setProjectFeatured] = useState(false);
+  const [projectDisplayOrder, setProjectDisplayOrder] = useState('');
+  const [uploadingProjectThumbnail, setUploadingProjectThumbnail] = useState(false);
+  
   // Confirmation modal state for sending Calendly
   const [confirmModal, setConfirmModal] = useState<{show: boolean; submission: Submission | null}>({show: false, submission: null});
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts' | 'businesses' | 'newsletter'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'signups' | 'prompts' | 'businesses' | 'newsletter' | 'projects'>('submissions');
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -158,6 +185,13 @@ export default function AdminPage() {
     } catch (e) { console.error(e); }
   }, []);
 
+  const loadProjects = useCallback(async () => {
+    try {
+      const res = await fetch('/api/projects');
+      if (res.ok) setProjects(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
   useEffect(() => {
     if (isSignedIn) {
       loadSubmissions();
@@ -166,6 +200,7 @@ export default function AdminPage() {
       loadBusinesses();
       loadSubscribers();
       loadDrafts();
+      loadProjects();
       
       const interval1 = setInterval(loadSubmissions, 30000);
       const interval2 = setInterval(loadClassSignups, 30000);
@@ -175,7 +210,7 @@ export default function AdminPage() {
         clearInterval(interval2);
       };
     }
-  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses, loadSubscribers, loadDrafts]);
+  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses, loadSubscribers, loadDrafts, loadProjects]);
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
@@ -388,6 +423,102 @@ export default function AdminPage() {
     }
   }
 
+  // Project CRUD functions
+  async function saveProject() {
+    if (!projectName) {
+      alert('Please enter a project name');
+      return;
+    }
+
+    const tags = projectTags ? projectTags.split(',').map(t => t.trim()).filter(t => t) : [];
+    const data = {
+      name: projectName,
+      description: projectDescription || null,
+      thumbnail: projectThumbnail || null,
+      status: projectStatus,
+      demo_url: projectDemoUrl || null,
+      video_url: projectVideoUrl || null,
+      tags,
+      featured: projectFeatured,
+      display_order: parseInt(projectDisplayOrder) || 0,
+      id: editingProjectId,
+    };
+
+    try {
+      const res = await fetch('/api/projects', {
+        method: editingProjectId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        cancelProjectEdit();
+        loadProjects();
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function deleteProject(id: number, name: string) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    try {
+      await fetch(`/api/projects?id=${id}`, { method: 'DELETE' });
+      loadProjects();
+    } catch (e) { console.error(e); }
+  }
+
+  function editProject(project: Project) {
+    setEditingProjectId(project.id);
+    setProjectName(project.name);
+    setProjectDescription(project.description || '');
+    setProjectThumbnail(project.thumbnail || '');
+    setProjectStatus(project.status || 'in_progress');
+    setProjectDemoUrl(project.demo_url || '');
+    setProjectVideoUrl(project.video_url || '');
+    setProjectTags((project.tags || []).join(', '));
+    setProjectFeatured(project.featured || false);
+    setProjectDisplayOrder(project.display_order?.toString() || '');
+  }
+
+  function cancelProjectEdit() {
+    setEditingProjectId(null);
+    setProjectName('');
+    setProjectDescription('');
+    setProjectThumbnail('');
+    setProjectStatus('in_progress');
+    setProjectDemoUrl('');
+    setProjectVideoUrl('');
+    setProjectTags('');
+    setProjectFeatured(false);
+    setProjectDisplayOrder('');
+  }
+
+  async function handleProjectThumbnailUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingProjectThumbnail(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setProjectThumbnail(data.url);
+      } else {
+        alert(data.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingProjectThumbnail(false);
+    }
+  }
+
   const today = new Date().toDateString();
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
   const todayCount = submissions.filter(s => new Date(s.created_at).toDateString() === today).length;
@@ -474,6 +605,16 @@ export default function AdminPage() {
             }`}
           >
             Newsletter ({subscribers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('projects')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'projects'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Projects ({projects.length})
           </button>
         </div>
 
@@ -1043,6 +1184,125 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Projects Tab */}
+        {activeTab === 'projects' && (
+          <>
+            <h1 className="text-4xl font-semibold mb-2">Projects</h1>
+            <p className="text-gray-500 mb-10">Manage projects built for people who reached out</p>
+
+            <div className="bg-white p-8 rounded-xl mb-6 shadow-sm">
+              <h3 className="text-xl mb-5">{editingProjectId ? 'Edit Project' : 'Add New Project'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Name *</label>
+                  <input value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Status</label>
+                  <select value={projectStatus} onChange={(e) => setProjectStatus(e.target.value)} className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600">
+                    <option value="in_progress">In Progress</option>
+                    <option value="coming_soon">Coming Soon</option>
+                    <option value="live">Live</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block mb-1.5 font-medium text-sm">Description</label>
+                  <textarea value={projectDescription} onChange={(e) => setProjectDescription(e.target.value)} placeholder="Brief description of the project" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600 min-h-[80px]" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Thumbnail</label>
+                  <div className="flex gap-2">
+                    <input value={projectThumbnail} onChange={(e) => setProjectThumbnail(e.target.value)} placeholder="URL or upload..." className="flex-1 p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                    <label className={`px-4 py-3 rounded-lg text-sm font-medium cursor-pointer transition-colors ${uploadingProjectThumbnail ? 'bg-gray-300 text-gray-500' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}>
+                      {uploadingProjectThumbnail ? 'Uploading...' : 'Upload'}
+                      <input type="file" accept="image/*" onChange={handleProjectThumbnailUpload} disabled={uploadingProjectThumbnail} className="hidden" />
+                    </label>
+                  </div>
+                  {projectThumbnail && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <img src={projectThumbnail} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+                      <button type="button" onClick={() => setProjectThumbnail('')} className="text-red-500 text-xs hover:underline">Remove</button>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Demo URL</label>
+                  <input value={projectDemoUrl} onChange={(e) => setProjectDemoUrl(e.target.value)} placeholder="https://..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Video URL</label>
+                  <input value={projectVideoUrl} onChange={(e) => setProjectVideoUrl(e.target.value)} placeholder="YouTube or Loom link" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Tags (comma-separated)</label>
+                  <input value={projectTags} onChange={(e) => setProjectTags(e.target.value)} placeholder="AI, Automation, Web App" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                  <label className="block mb-1.5 font-medium text-sm">Display Order</label>
+                  <input type="number" value={projectDisplayOrder} onChange={(e) => setProjectDisplayOrder(e.target.value)} placeholder="0" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-blue-600" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="projectFeatured" checked={projectFeatured} onChange={(e) => setProjectFeatured(e.target.checked)} className="w-4 h-4" />
+                  <label htmlFor="projectFeatured" className="text-sm">Featured on homepage</label>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={saveProject} className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium cursor-pointer hover:bg-blue-700">
+                  {editingProjectId ? 'Update Project' : 'Add Project'}
+                </button>
+                {editingProjectId && (
+                  <button onClick={cancelProjectEdit} className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium cursor-pointer hover:bg-gray-200">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <h3 className="mb-4 font-semibold">Existing Projects</h3>
+            {projects.length === 0 ? (
+              <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No projects yet. Add your first project above!</div>
+            ) : (
+              <div className="space-y-4">
+                {projects.map(project => (
+                  <div key={project.id} className={`bg-white p-6 rounded-xl shadow-sm border-l-4 ${project.status === 'live' ? 'border-green-500' : project.status === 'coming_soon' ? 'border-purple-500' : 'border-yellow-500'}`}>
+                    <div className="flex flex-wrap justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold">{project.name}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            project.status === 'live' ? 'bg-green-100 text-green-700' :
+                            project.status === 'coming_soon' ? 'bg-purple-100 text-purple-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {project.status === 'live' ? 'Live' : project.status === 'coming_soon' ? 'Coming Soon' : 'In Progress'}
+                          </span>
+                          {project.featured && <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">Featured</span>}
+                        </div>
+                        {project.description && <p className="text-gray-500 text-sm mb-3">{project.description}</p>}
+                        {project.tags && project.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {project.tags.map((tag, i) => (
+                              <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => editProject(project)} className="bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-600 hover:text-white hover:border-blue-600">
+                          Edit
+                        </button>
+                        <button onClick={() => deleteProject(project.id, project.name)} className="bg-gray-50 text-red-500 border border-red-200 px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-red-500 hover:text-white">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </>
