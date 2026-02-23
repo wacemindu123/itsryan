@@ -23,7 +23,6 @@ export default function SocialBanner() {
     if (projectsSection) {
       projectsSection.scrollIntoView({ behavior: 'smooth' });
     }
-    setIsVisible(false);
   };
 
   const dismiss = () => {
