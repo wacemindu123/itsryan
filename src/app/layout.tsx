@@ -37,9 +37,6 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v9crozkcpd");
           `}
         </Script>
-        {/* Calendly */}
-        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
-        <Script src="https://assets.calendly.com/assets/external/widget.js" strategy="lazyOnload" />
       </head>
       <body className={`${inter.variable} antialiased`}>
         {children}

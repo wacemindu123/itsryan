@@ -9,7 +9,6 @@ import HowItWorksSection from '@/components/sections/HowItWorksSection';
 import PromptLibrary from '@/components/sections/PromptLibrary';
 import ContactForm from '@/components/sections/ContactForm';
 import ClassSignupForm from '@/components/sections/ClassSignupForm';
-import CalendlyWidget from '@/components/CalendlyWidget';
 
 export default function Home() {
   return (
@@ -27,7 +26,6 @@ export default function Home() {
         <ClassSignupForm />
       </main>
       <Footer />
-      <CalendlyWidget />
     </>
   );
 }
