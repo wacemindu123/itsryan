@@ -17,16 +17,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
+    // Build insert object - only include website if it has a value
+    const insertData: Record<string, string> = {
+      name,
+      email,
+      phone,
+      business,
+      scaling_challenge: scalingChallenge,
+    };
+    
+    // Try to include website - will be ignored if column doesn't exist
+    if (website) {
+      insertData.website = website;
+    }
+
     const { data, error } = await supabase
       .from('submissions')
-      .insert([{
-        name,
-        email,
-        phone,
-        business,
-        website: website || null,
-        scaling_challenge: scalingChallenge,
-      }])
+      .insert([insertData])
       .select();
 
     if (error) throw error;
