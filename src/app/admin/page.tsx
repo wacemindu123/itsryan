@@ -88,6 +88,15 @@ interface Project {
   display_order: number;
 }
 
+interface ProjectWaitlistEntry {
+  id: number;
+  project_id: number;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  projects: { name: string } | null;
+}
+
 export default function AdminPage() {
   const { isSignedIn, isLoaded } = useUser();
   
@@ -98,6 +107,7 @@ export default function AdminPage() {
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [drafts, setDrafts] = useState<NewsletterDraft[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectWaitlist, setProjectWaitlist] = useState<ProjectWaitlistEntry[]>([]);
   const [editingPromptId, setEditingPromptId] = useState<number | null>(null);
   const [editingBusinessId, setEditingBusinessId] = useState<number | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
@@ -192,6 +202,13 @@ export default function AdminPage() {
     } catch (e) { console.error(e); }
   }, []);
 
+  const loadProjectWaitlist = useCallback(async () => {
+    try {
+      const res = await fetch('/api/project-waitlist');
+      if (res.ok) setProjectWaitlist(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
   useEffect(() => {
     if (isSignedIn) {
       loadSubmissions();
@@ -201,6 +218,7 @@ export default function AdminPage() {
       loadSubscribers();
       loadDrafts();
       loadProjects();
+      loadProjectWaitlist();
       
       const interval1 = setInterval(loadSubmissions, 30000);
       const interval2 = setInterval(loadClassSignups, 30000);
@@ -210,7 +228,7 @@ export default function AdminPage() {
         clearInterval(interval2);
       };
     }
-  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses, loadSubscribers, loadDrafts, loadProjects]);
+  }, [isSignedIn, loadSubmissions, loadClassSignups, loadPrompts, loadBusinesses, loadSubscribers, loadDrafts, loadProjects, loadProjectWaitlist]);
 
   async function updateContactStatus(id: number, contacted: boolean, table: string) {
     try {
@@ -1303,6 +1321,35 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Project Waitlist Section */}
+            <h3 className="mb-4 font-semibold mt-10">Project Waitlist Signups</h3>
+            {projectWaitlist.length === 0 ? (
+              <div className="bg-white rounded-xl p-10 text-center text-gray-500 shadow-sm">No waitlist signups yet.</div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Email</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Phone</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Project</th>
+                      <th className="text-left p-4 text-sm font-medium text-gray-600">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectWaitlist.map(entry => (
+                      <tr key={entry.id} className="border-t border-gray-100">
+                        <td className="p-4 text-sm">{entry.email}</td>
+                        <td className="p-4 text-sm">{entry.phone || '-'}</td>
+                        <td className="p-4 text-sm font-medium">{entry.projects?.name || `Project #${entry.project_id}`}</td>
+                        <td className="p-4 text-sm text-gray-500">{new Date(entry.created_at).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </>
