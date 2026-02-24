@@ -297,7 +297,8 @@ export default function ProjectShowcase() {
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Phone (optional, for SMS updates)"
+                        placeholder="Phone Number"
+                        required
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900"
                       />
                       {error && (
