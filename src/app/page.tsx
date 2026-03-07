@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/sections/HeroSection';
+import AIAgentsSection from '@/components/sections/AIAgentsSection';
 import ValueProgressMeters from '@/components/sections/ValueProgressMeters';
 import ProjectShowcase from '@/components/sections/ProjectShowcase';
 import BusinessShowcase from '@/components/sections/BusinessShowcase';
@@ -21,6 +22,7 @@ export default function Home() {
       <NewsletterCTA />
       <main>
         <HeroSection />
+        <AIAgentsSection />
         <ValueProgressMeters />
         <ProjectShowcase />
         <BusinessShowcase />
