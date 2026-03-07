@@ -11,12 +11,14 @@ import PromptLibrary from '@/components/sections/PromptLibrary';
 import ContactForm from '@/components/sections/ContactForm';
 import ClassSignupForm from '@/components/sections/ClassSignupForm';
 import SocialBanner from '@/components/SocialBanner';
+import NewsletterCTA from '@/components/NewsletterCTA';
 
 export default function Home() {
   return (
     <>
       <SocialBanner />
       <Header />
+      <NewsletterCTA />
       <main>
         <HeroSection />
         <ValueProgressMeters />
