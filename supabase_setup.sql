@@ -232,3 +232,14 @@ CREATE POLICY "Enable all operations for project_waitlist" ON project_waitlist
 
 CREATE POLICY "Enable insert for anon users on project_waitlist" ON project_waitlist
   FOR INSERT WITH CHECK (true);
+
+-- =============================================
+-- NEWSLETTER SUBSCRIBERS TABLE UPDATE
+-- Add unsubscribe_token for secure unsubscribe links
+-- =============================================
+
+ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS unsubscribe_token TEXT;
+ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW());
+
+-- Create index for token lookups
+CREATE INDEX IF NOT EXISTS idx_newsletter_subscribers_token ON newsletter_subscribers(unsubscribe_token);
