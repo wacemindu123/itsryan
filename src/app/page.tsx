@@ -5,7 +5,6 @@ import AIAgentsSection from '@/components/sections/AIAgentsSection';
 import ValueProgressMeters from '@/components/sections/ValueProgressMeters';
 import ProjectShowcase from '@/components/sections/ProjectShowcase';
 import BusinessShowcase from '@/components/sections/BusinessShowcase';
-import WhySection from '@/components/sections/WhySection';
 import CapabilitiesSection from '@/components/sections/CapabilitiesSection';
 import HowItWorksSection from '@/components/sections/HowItWorksSection';
 import PromptLibrary from '@/components/sections/PromptLibrary';
@@ -26,7 +25,6 @@ export default function Home() {
         <ValueProgressMeters />
         <ProjectShowcase />
         <BusinessShowcase />
-        <WhySection />
         <CapabilitiesSection />
         <HowItWorksSection />
         <PromptLibrary />
