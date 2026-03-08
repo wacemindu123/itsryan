@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'already'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,7 +20,7 @@ export default function NewsletterPage() {
       const res = await fetch('/api/newsletter-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, phone: phone || null }),
       });
 
       const data = await res.json();
@@ -27,6 +28,7 @@ export default function NewsletterPage() {
       if (res.ok) {
         setStatus('success');
         setEmail('');
+        setPhone('');
       } else if (data.error === 'Already subscribed') {
         setStatus('already');
       } else {
@@ -116,19 +118,26 @@ export default function NewsletterPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="relative">
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
-                    className="flex-1 px-5 py-4 text-[17px] bg-white border border-[#d2d2d7] rounded-full focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+                    className="w-full px-5 py-4 text-[17px] bg-white border border-[#d2d2d7] rounded-full focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+                  />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Phone (for weekly SMS tips)"
+                    className="w-full px-5 py-4 text-[17px] bg-white border border-[#d2d2d7] rounded-full focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-8 py-4 text-[17px] font-medium bg-[var(--accent)] text-white rounded-full hover:bg-[var(--accent-hover)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 whitespace-nowrap"
+                    className="w-full px-8 py-4 text-[17px] font-medium bg-[var(--accent)] text-white rounded-full hover:bg-[var(--accent-hover)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isSubmitting ? 'Subscribing...' : 'Subscribe for free'}
                   </button>
