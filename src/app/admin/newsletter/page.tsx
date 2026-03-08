@@ -186,6 +186,7 @@ export default function AdminNewsletterPage() {
               <thead>
                 <tr className="border-b border-[#d2d2d7]">
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Email</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Phone</th>
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Subscribed</th>
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Status</th>
                   <th className="text-right p-4 text-sm font-medium text-[var(--text-secondary)]">Action</th>
@@ -194,7 +195,7 @@ export default function AdminNewsletterPage() {
               <tbody>
                 {subscribers.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-[var(--text-secondary)]">
+                    <td colSpan={5} className="p-8 text-center text-[var(--text-secondary)]">
                       No subscribers yet
                     </td>
                   </tr>
@@ -202,6 +203,9 @@ export default function AdminNewsletterPage() {
                   subscribers.map((sub) => (
                     <tr key={sub.id} className="border-b border-[#d2d2d7] last:border-none hover:bg-[#f5f5f7] transition-colors">
                       <td className="p-4 text-sm text-[var(--text-primary)]">{sub.email}</td>
+                      <td className="p-4 text-sm text-[var(--text-secondary)]">
+                        {sub.phone || '—'}
+                      </td>
                       <td className="p-4 text-sm text-[var(--text-secondary)]">
                         {new Date(sub.created_at).toLocaleDateString()}
                       </td>
