@@ -151,7 +151,7 @@ export default function HowtoPage() {
             Learn what I teach on TikTok.
           </h1>
           <p className="text-[17px] sm:text-[19px] text-white/60 max-w-[620px] mx-auto leading-[1.6] mb-4">
-            Step-by-step guides from my TikTok videos. Each guide is a detailed walkthrough you can follow at your own pace. Click a node to preview, then unlock for $1.99.
+            Step-by-step guides from my TikTok videos. Each guide is a detailed walkthrough you can follow at your own pace. Unlock any guide for $1.99 — every purchase helps fund free AI solutions for small businesses.
           </p>
           <p className="text-[13px] text-white/40">
             Click any node on the orbital to explore • Click empty space to reset
