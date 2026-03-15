@@ -408,8 +408,21 @@ export default function AdminHowtoPage() {
                   step="0.01"
                   value={formPrice}
                   onChange={(e) => setFormPrice(e.target.value)}
-                  className="w-full px-4 py-3 border border-[#d2d2d7] rounded-xl focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
+                  disabled={formPrice === '0'}
+                  className="w-full px-4 py-3 border border-[#d2d2d7] rounded-xl focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)] disabled:bg-gray-50 disabled:text-gray-400"
                 />
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="free-guide"
+                    checked={formPrice === '0'}
+                    onChange={(e) => setFormPrice(e.target.checked ? '0' : '1.99')}
+                    className="w-4 h-4 rounded accent-[#34c759]"
+                  />
+                  <label htmlFor="free-guide" className="text-sm text-[var(--text-secondary)]">
+                    Make this guide free
+                  </label>
+                </div>
               </div>
 
               <div>

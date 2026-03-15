@@ -291,7 +291,7 @@ export default function RadialOrbitalTimeline({
                               item.onPurchase?.();
                             }}
                           >
-                            {item.purchased ? "View Guide →" : `Unlock for $${item.price.toFixed(2)}`}
+                            {item.purchased ? "View Guide →" : item.price === 0 ? "Free — View Guide" : `Unlock for $${item.price.toFixed(2)}`}
                           </ShadcnButton>
                         </div>
                       )}

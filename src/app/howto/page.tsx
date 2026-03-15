@@ -65,6 +65,11 @@ export default function HowtoPage() {
   }, [loadGuides]);
 
   const handlePurchase = async (guideId: number) => {
+    const guide = guides.find(g => g.id === guideId);
+    if (guide && guide.price === 0) {
+      window.open(guide.google_doc_url, '_blank');
+      return;
+    }
     setSelectedGuideId(guideId);
     setShowEmailModal(true);
     setPurchaseResult(null);
@@ -151,7 +156,7 @@ export default function HowtoPage() {
             Learn what I teach on TikTok.
           </h1>
           <p className="text-[17px] sm:text-[19px] text-white/60 max-w-[620px] mx-auto leading-[1.6] mb-4">
-            Step-by-step guides from my TikTok videos. Each guide is a detailed walkthrough you can follow at your own pace. Unlock any guide for $1.99 — every purchase helps fund free AI solutions for small businesses.
+            Step-by-step guides from my TikTok videos. Each guide is a detailed walkthrough you can follow at your own pace. Unlock any guide for $1.99 — every purchase helps fund free AI solutions for small businesses I do for free.
           </p>
           <p className="text-[13px] text-white/40">
             Click any node on the orbital to explore • Click empty space to reset
@@ -219,7 +224,7 @@ export default function HowtoPage() {
                         disabled={guide.status === 'coming-soon'}
                         className="px-4 py-2 text-[13px] font-medium bg-white text-black rounded-full hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                       >
-                        {guide.status === 'coming-soon' ? 'Coming Soon' : `Unlock $${guide.price?.toFixed(2) || '1.99'}`}
+                        {guide.status === 'coming-soon' ? 'Coming Soon' : guide.price === 0 ? 'Free — View Guide' : `Unlock $${guide.price?.toFixed(2) || '1.99'}`}
                       </button>
                     </div>
                     {guide.tiktok_url && (
