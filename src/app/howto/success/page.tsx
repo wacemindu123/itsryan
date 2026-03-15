@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-function HowtoSuccessContent() {
+export default function HowtoSuccessPage() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [guideUrl, setGuideUrl] = useState<string | null>(null);
@@ -82,17 +82,5 @@ function HowtoSuccessContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function HowtoSuccessPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center p-5">
-        <div className="animate-pulse text-white/50">Loading...</div>
-      </div>
-    }>
-      <HowtoSuccessContent />
-    </Suspense>
   );
 }

@@ -634,6 +634,12 @@ export default function AdminPage() {
           >
             Projects ({projects.length})
           </button>
+          <Link
+            href="/admin/howto"
+            className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
+          >
+            🔥 How-To Guides →
+          </Link>
         </div>
 
         {/* Submissions Tab */}
