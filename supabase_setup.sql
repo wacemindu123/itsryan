@@ -243,3 +243,64 @@ ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS subscribed_at TIMEST
 
 -- Create index for token lookups
 CREATE INDEX IF NOT EXISTS idx_newsletter_subscribers_token ON newsletter_subscribers(unsubscribe_token);
+
+-- =============================================
+-- HOWTO GUIDES TABLE
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS howto_guides (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'General',
+  google_doc_url TEXT NOT NULL,
+  preview_image_url TEXT,
+  price NUMERIC(5,2) DEFAULT 1.99,
+  energy INTEGER DEFAULT 50,
+  related_ids INTEGER[] DEFAULT '{}',
+  status TEXT DEFAULT 'available' CHECK (status IN ('available', 'new', 'coming-soon')),
+  tiktok_url TEXT,
+  display_order INTEGER DEFAULT 0,
+  featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Enable Row Level Security
+ALTER TABLE howto_guides ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable read for all users on howto_guides" ON howto_guides
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for howto_guides" ON howto_guides
+  FOR ALL USING (true);
+
+CREATE POLICY "Enable insert for howto_guides" ON howto_guides
+  FOR INSERT WITH CHECK (true);
+
+-- =============================================
+-- HOWTO PURCHASES TABLE
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS howto_purchases (
+  id SERIAL PRIMARY KEY,
+  guide_id INTEGER NOT NULL REFERENCES howto_guides(id),
+  email TEXT NOT NULL,
+  stripe_session_id TEXT,
+  stripe_payment_intent TEXT,
+  amount NUMERIC(5,2) DEFAULT 1.99,
+  status TEXT DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'refunded')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  UNIQUE(guide_id, email)
+);
+
+-- Enable Row Level Security
+ALTER TABLE howto_purchases ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable read for all users on howto_purchases" ON howto_purchases
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable all operations for howto_purchases" ON howto_purchases
+  FOR ALL USING (true);
+
+CREATE POLICY "Enable insert for howto_purchases" ON howto_purchases
+  FOR INSERT WITH CHECK (true);

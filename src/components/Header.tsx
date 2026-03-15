@@ -7,11 +7,11 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '#why', label: 'Why' },
-    { href: '#capabilities', label: 'What I Build' },
-    { href: '#how', label: 'How It Works' },
-    { href: '#prompt-library', label: 'Prompts' },
-    { href: '#apply', label: 'Get Started' },
+    { href: '/howto', label: '🔥 How-To Guides', highlight: true },
+    { href: '#capabilities', label: 'What I Build', highlight: false },
+    { href: '#how', label: 'How It Works', highlight: false },
+    { href: '#prompt-library', label: 'Prompts', highlight: false },
+    { href: '#apply', label: 'Get Started', highlight: false },
   ];
 
   return (
@@ -24,7 +24,15 @@ export default function Header() {
         {/* Desktop Nav */}
         <div className="hidden md:flex gap-8">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="text-[var(--text-primary)] text-xs font-normal opacity-80 hover:opacity-100 transition-opacity">
+            <Link
+              key={link.href}
+              href={link.href}
+              className={
+                link.highlight
+                  ? "text-[var(--accent)] text-xs font-semibold hover:text-[var(--accent-hover)] transition-colors"
+                  : "text-[var(--text-primary)] text-xs font-normal opacity-80 hover:opacity-100 transition-opacity"
+              }
+            >
               {link.label}
             </Link>
           ))}
@@ -50,7 +58,11 @@ export default function Header() {
               key={link.href} 
               href={link.href} 
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-3 text-[var(--text-primary)] text-base font-medium border-b border-black/5 last:border-none"
+              className={
+                link.highlight
+                  ? "block py-3 text-[var(--accent)] text-base font-semibold border-b border-black/5 last:border-none"
+                  : "block py-3 text-[var(--text-primary)] text-base font-medium border-b border-black/5 last:border-none"
+              }
             >
               {link.label}
             </Link>
