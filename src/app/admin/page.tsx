@@ -714,7 +714,7 @@ export default function AdminPage() {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Website</p>
                     {sub.website ? (
-                      <a href={sub.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline break-all">{sub.website}</a>
+                      <a href={sub.website.match(/^https?:\/\//) ? sub.website : `https://${sub.website}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline break-all">{sub.website}</a>
                     ) : (
                       <p className="text-sm font-medium text-gray-900">-</p>
                     )}
