@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Modal from '../ui/Modal';
 import { analytics } from '@/lib/analytics';
 
 export default function ClassSignupForm() {
+  const router = useRouter();
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -44,9 +46,9 @@ export default function ClassSignupForm() {
       });
 
       if (response.ok) {
-        setShowSuccess(true);
         analytics.aiClassFunnelStep(3, 'signup_success');
         (e.target as HTMLFormElement).reset();
+        router.push('/thank-you?from=class');
       } else {
         analytics.formError('ai_class_signup', 'submission_failed');
         alert('There was an error signing up. Please try again.');

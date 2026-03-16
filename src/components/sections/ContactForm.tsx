@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Modal from '../ui/Modal';
 import { analytics } from '@/lib/analytics';
 
 export default function ContactForm() {
+  const router = useRouter();
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -44,9 +46,9 @@ export default function ContactForm() {
       });
 
       if (response.ok) {
-        setShowSuccess(true);
         analytics.contactFunnelStep(3, 'form_success');
         (e.target as HTMLFormElement).reset();
+        router.push('/thank-you?from=contact');
       } else {
         analytics.formError('contact_form', 'submission_failed');
         alert('There was an error submitting your form. Please try again.');

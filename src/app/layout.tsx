@@ -12,8 +12,53 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Ryan Widgeon | Free Tech for Small Businesses",
-  description: "I help small businesses scale using AI and technology. For free.",
+  title: {
+    default: "Ryan Widgeon | Free Tech for Small Businesses",
+    template: "%s | ItsRyan.ai",
+  },
+  description:
+    "I help Atlanta small businesses scale using AI and technology—websites, automations, chatbots, and more. For free.",
+  metadataBase: new URL("https://www.itsryan.ai"),
+  keywords: [
+    "free tech for small businesses",
+    "AI for small business",
+    "Atlanta small business",
+    "free website builder",
+    "AI automation",
+    "chatbot for business",
+    "Ryan Widgeon",
+  ],
+  authors: [{ name: "Ryan Widgeon" }],
+  creator: "Ryan Widgeon",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.itsryan.ai",
+    siteName: "ItsRyan.ai",
+    title: "Ryan Widgeon | Free Tech for Small Businesses",
+    description:
+      "AI tools, automations, websites—the same stuff big companies pay $50k+ for. Built free for Atlanta small businesses.",
+    images: [
+      {
+        url: "/chatgptportrait.png",
+        width: 512,
+        height: 512,
+        alt: "ItsRyan.ai – Free Tech for Small Businesses",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Ryan Widgeon | Free Tech for Small Businesses",
+    description:
+      "AI tools, automations, websites—the same stuff big companies pay $50k+ for. Built free for Atlanta small businesses.",
+    images: ["/chatgptportrait.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-video-preview": -1, "max-image-preview": "large", "max-snippet": -1 },
+  },
   icons: {
     icon: "/chatgptportrait.png",
     apple: "/chatgptportrait.png",

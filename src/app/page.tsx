@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import JsonLd from '@/components/JsonLd';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/sections/HeroSection';
 import AIAgentsSection from '@/components/sections/AIAgentsSection';
@@ -16,6 +17,7 @@ import NewsletterCTA from '@/components/NewsletterCTA';
 export default function Home() {
   return (
     <>
+      <JsonLd />
       <SocialBanner />
       <Header />
       <NewsletterCTA />
