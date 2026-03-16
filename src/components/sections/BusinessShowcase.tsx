@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { analytics } from '@/lib/analytics';
 
 interface Business {
   id: number;
@@ -82,7 +83,7 @@ export default function BusinessShowcase() {
               {displayBusinesses.map((business, index) => (
                 <div
                   key={business.id}
-                  onClick={() => setSelectedBusiness(business)}
+                  onClick={() => { analytics.ctaClick('business_card_' + business.name, 'business_showcase'); setSelectedBusiness(business); }}
                   className="bg-[var(--surface)] rounded-xl p-4 md:p-6 border border-black/5 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
@@ -109,6 +110,7 @@ export default function BusinessShowcase() {
             <div className="text-center">
               <Link 
                 href="/SmallBusinesses"
+                onClick={() => analytics.ctaClick('view_all_businesses', 'business_showcase')}
                 className="inline-block px-8 py-4 bg-[var(--accent)] text-white rounded-full font-medium hover:bg-[var(--accent-hover)] hover:scale-[1.02] transition-all"
               >
                 View All Businesses →
@@ -150,6 +152,7 @@ export default function BusinessShowcase() {
                   href={selectedBusiness.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => analytics.externalLinkClick(selectedBusiness.website_url!, 'visit_website_' + selectedBusiness.name)}
                   className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Visit Website
@@ -165,6 +168,7 @@ export default function BusinessShowcase() {
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => analytics.externalLinkClick(link, 'business_video_' + selectedBusiness.name)}
                       className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                     >
                       Video {i + 1}

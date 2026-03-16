@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { analytics } from '@/lib/analytics';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary';
@@ -24,16 +27,21 @@ export default function Button({
 
   const combinedStyles = `${baseStyles} ${variants[variant]} ${className}`;
 
+  const handleClick = () => {
+    const label = typeof children === 'string' ? children : href || 'button';
+    analytics.ctaClick(label, href || 'inline');
+  };
+
   if (href) {
     return (
-      <Link href={href} className={combinedStyles}>
+      <Link href={href} className={combinedStyles} onClick={handleClick}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button className={combinedStyles} {...props}>
+    <button className={combinedStyles} {...props} onClick={(e) => { handleClick(); props.onClick?.(e); }}>
       {children}
     </button>
   );

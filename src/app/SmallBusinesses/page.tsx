@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { analytics } from '@/lib/analytics';
 
 interface Business {
   id: number;
@@ -115,6 +116,7 @@ export default function SmallBusinessesPage() {
                             href={business.website_url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => analytics.externalLinkClick(business.website_url!, 'visit_website_' + business.name)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
                           >
                             Visit Website →
@@ -145,6 +147,7 @@ export default function SmallBusinessesPage() {
                               href={link}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={() => analytics.externalLinkClick(link, 'video_' + business.name)}
                               className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition-colors"
                             >
                               Video {i + 1}
@@ -159,6 +162,7 @@ export default function SmallBusinessesPage() {
                               href={link}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={() => analytics.externalLinkClick(link, 'github_' + business.name)}
                               className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
                             >
                               GitHub {i + 1}
@@ -173,6 +177,7 @@ export default function SmallBusinessesPage() {
                               href={link}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={() => analytics.externalLinkClick(link, 'resource_' + business.name)}
                               className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-200 transition-colors"
                             >
                               Resource {i + 1}

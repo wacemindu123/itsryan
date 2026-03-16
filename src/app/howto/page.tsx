@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BookOpen, Video, Sparkles, TrendingUp, Cpu, MessageSquare, BarChart3, Mail } from 'lucide-react';
 import RadialOrbitalTimeline from '@/components/ui/radial-orbital-timeline';
+import { analytics } from '@/lib/analytics';
 
 interface HowtoGuide {
   id: number;
@@ -67,8 +68,12 @@ export default function HowtoPage() {
   const handlePurchase = async (guideId: number) => {
     const guide = guides.find(g => g.id === guideId);
     if (guide && guide.price === 0) {
+      analytics.ctaClick('free_guide_' + guide.title, 'howto_page');
       window.open(guide.google_doc_url, '_blank');
       return;
+    }
+    if (guide) {
+      analytics.ctaClick('unlock_guide_' + guide.title, 'howto_page');
     }
     setSelectedGuideId(guideId);
     setShowEmailModal(true);
@@ -90,10 +95,13 @@ export default function HowtoPage() {
       const data = await res.json();
 
       if (data.alreadyPurchased) {
+        analytics.formSubmit('guide_purchase_existing');
         setPurchaseResult({ success: true, message: 'You already own this guide!', url: data.url });
       } else if (data.checkoutUrl) {
+        analytics.formSubmit('guide_purchase_checkout');
         window.location.href = data.checkoutUrl;
       } else if (data.success && data.placeholder) {
+        analytics.formSubmit('guide_purchase_success');
         setPurchaseResult({ success: true, message: data.message, url: data.url });
       } else {
         setPurchaseResult({ success: false, message: data.error || 'Something went wrong' });
@@ -232,6 +240,7 @@ export default function HowtoPage() {
                         href={guide.tiktok_url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => analytics.externalLinkClick(guide.tiktok_url!, 'tiktok_' + guide.title)}
                         className="inline-flex items-center gap-1 mt-3 text-[12px] text-blue-400 hover:text-blue-300 transition-colors"
                       >
                         <Video size={12} />
@@ -276,6 +285,7 @@ export default function HowtoPage() {
                     href={purchaseResult.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => analytics.externalLinkClick(purchaseResult.url!, 'open_purchased_guide')}
                     className="inline-block mt-3 px-6 py-2.5 bg-white text-black rounded-full text-sm font-medium hover:bg-white/90 transition-all"
                   >
                     Open Guide →

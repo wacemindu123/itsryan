@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { analytics } from '@/lib/analytics';
 
 const agentCards = [
   {
@@ -93,6 +94,7 @@ export default function AIAgentsSection() {
   }, []);
 
   const scrollToContact = () => {
+    analytics.ctaClick('build_agent_stack', 'ai_agents_section');
     document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
   };
 

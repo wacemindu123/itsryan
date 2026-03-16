@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+import { analytics } from '@/lib/analytics';
 
 export default function NewsletterPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function NewsletterPopup() {
     // Show popup after 5 seconds on first visit
     const timer = setTimeout(() => {
       setIsOpen(true);
+      analytics.ctaClick('newsletter_popup_shown', 'auto_popup');
       localStorage.setItem('newsletter_popup_seen', 'true');
     }, 5000);
 
@@ -25,6 +27,7 @@ export default function NewsletterPopup() {
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 0 && !localStorage.getItem('newsletter_popup_seen')) {
         setIsOpen(true);
+        analytics.ctaClick('newsletter_popup_shown', 'exit_intent');
         localStorage.setItem('newsletter_popup_seen', 'true');
       }
     };
@@ -53,6 +56,7 @@ export default function NewsletterPopup() {
 
       if (res.ok) {
         setSubmitted(true);
+        analytics.newsletterSignup('popup');
       } else {
         setError(data.error || 'Failed to subscribe');
       }
@@ -64,6 +68,7 @@ export default function NewsletterPopup() {
   };
 
   const handleClose = () => {
+    analytics.ctaClick('newsletter_popup_dismissed', 'popup');
     setIsOpen(false);
   };
 

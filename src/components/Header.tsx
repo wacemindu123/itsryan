@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { analytics } from '@/lib/analytics';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +28,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => analytics.ctaClick(link.label, 'header_nav')}
               className={
                 link.highlight
                   ? "text-[var(--accent)] text-xs font-semibold hover:text-[var(--accent-hover)] transition-colors"
@@ -57,7 +59,7 @@ export default function Header() {
             <Link 
               key={link.href} 
               href={link.href} 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => { analytics.ctaClick(link.label, 'mobile_nav'); setMobileMenuOpen(false); }}
               className={
                 link.highlight
                   ? "block py-3 text-[var(--accent)] text-base font-semibold border-b border-black/5 last:border-none"

@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { analytics } from '@/lib/analytics';
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState('');
@@ -27,6 +28,7 @@ export default function NewsletterPage() {
 
       if (res.ok) {
         setStatus('success');
+        analytics.newsletterSignup('newsletter_page');
         setEmail('');
         setPhone('');
       } else if (data.error === 'Already subscribed') {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, FormEvent } from 'react';
 import Image from 'next/image';
+import { analytics } from '@/lib/analytics';
 
 interface Project {
   id: number;
@@ -110,6 +111,7 @@ export default function ProjectShowcase() {
 
       if (res.ok) {
         setSubmitted(true);
+        analytics.formSubmit('project_waitlist_' + selectedProject.name);
         setEmail('');
         setPhone('');
       } else {
@@ -171,7 +173,7 @@ export default function ProjectShowcase() {
             {displayProjects.map((project, index) => (
               <div
                 key={project.id}
-                onClick={() => setSelectedProject(project)}
+                onClick={() => { analytics.ctaClick('project_card_' + project.name, 'project_showcase'); setSelectedProject(project); }}
                 className="bg-[var(--background)] rounded-xl overflow-hidden border border-black/5 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -252,6 +254,7 @@ export default function ProjectShowcase() {
                   href={selectedProject.demo_url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => analytics.externalLinkClick(selectedProject.demo_url!, 'try_project_' + selectedProject.name)}
                   className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Try It Now
@@ -261,6 +264,7 @@ export default function ProjectShowcase() {
                     href={selectedProject.video_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => analytics.externalLinkClick(selectedProject.video_url!, 'demo_video_' + selectedProject.name)}
                     className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                   >
                     Watch Demo Video

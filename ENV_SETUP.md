@@ -19,6 +19,13 @@ FROM_EMAIL=onboarding@resend.dev
 
 # Calendly
 CALENDLY_LINK=https://calendly.com/ryansmallbussinessdoctor/15min
+
+# PostHog Analytics
+NEXT_PUBLIC_POSTHOG_KEY=phc_dc4O3TzdpwYut5fNIvuT09CHTDG1d01VrL3aXhjvfcg
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+
+# Google Analytics 4
+NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 ## Vercel Deployment

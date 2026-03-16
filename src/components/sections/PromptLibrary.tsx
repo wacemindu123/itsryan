@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { analytics } from '@/lib/analytics';
 
 interface Prompt {
   id: number;
@@ -54,6 +55,7 @@ export default function PromptLibrary() {
     try {
       await navigator.clipboard.writeText(prompt.content);
       setCopySuccess(prompt.id);
+      analytics.promptCopied(prompt.id.toString(), prompt.title);
       setTimeout(() => setCopySuccess(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
@@ -114,7 +116,7 @@ export default function PromptLibrary() {
                       {copySuccess === prompt.id ? 'Copied!' : 'Copy'}
                     </button>
                     <button 
-                      onClick={() => setSelectedPrompt(prompt)}
+                      onClick={() => { analytics.ctaClick('view_prompt_' + prompt.title, 'prompt_library'); setSelectedPrompt(prompt); }}
                       className="flex-1 py-[10px] px-4 text-sm font-medium rounded-[10px] bg-transparent text-[var(--accent)] border border-[var(--accent)] cursor-pointer hover:bg-[var(--accent)] hover:text-white transition-all"
                     >
                       View Full

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { analytics } from '@/lib/analytics';
 
 export default function SocialBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -19,6 +20,7 @@ export default function SocialBanner() {
   }, []);
 
   const scrollToProjects = () => {
+    analytics.ctaClick('social_banner_projects', 'social_banner');
     const projectsSection = document.getElementById('projects');
     if (projectsSection) {
       projectsSection.scrollIntoView({ behavior: 'smooth' });
@@ -26,6 +28,7 @@ export default function SocialBanner() {
   };
 
   const dismiss = () => {
+    analytics.ctaClick('social_banner_dismissed', 'social_banner');
     setIsVisible(false);
     localStorage.setItem('social_banner_dismissed', 'true');
   };

@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import "./globals.css";
 import NewsletterPopup from "@/components/NewsletterPopup";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,10 +38,29 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v9crozkcpd");
           `}
         </Script>
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-script" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className={`${inter.variable} antialiased`}>
-        {children}
-        <NewsletterPopup />
+        <PostHogProvider>
+          {children}
+          <NewsletterPopup />
+        </PostHogProvider>
       </body>
     </html>
   );

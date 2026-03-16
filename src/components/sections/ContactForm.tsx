@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, FormEvent } from 'react';
 import Modal from '../ui/Modal';
+import { analytics } from '@/lib/analytics';
 
 export default function ContactForm() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -29,6 +30,8 @@ export default function ContactForm() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    analytics.formSubmit('contact_form');
+    analytics.contactFunnelStep(2, 'form_submitted');
     
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData);
@@ -42,12 +45,15 @@ export default function ContactForm() {
 
       if (response.ok) {
         setShowSuccess(true);
+        analytics.contactFunnelStep(3, 'form_success');
         (e.target as HTMLFormElement).reset();
       } else {
+        analytics.formError('contact_form', 'submission_failed');
         alert('There was an error submitting your form. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
+      analytics.formError('contact_form', 'network_error');
       alert('There was an error submitting your form. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -79,6 +85,7 @@ export default function ContactForm() {
                   type="text" 
                   name="name" 
                   required
+                  onFocus={() => { analytics.formStart('contact_form'); analytics.contactFunnelStep(1, 'form_started'); }}
                   className="w-full py-[14px] px-4 bg-[var(--background)] border border-black/10 rounded-xl text-[var(--text-primary)] text-[17px] transition-all focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
                 />
               </div>

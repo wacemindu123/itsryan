@@ -9,7 +9,7 @@ A Next.js 14 website with Tailwind CSS for offering free tech services to Atlant
 - **Database**: Supabase
 - **Authentication**: Clerk (for admin)
 - **Email**: Resend
-- **Analytics**: Microsoft Clarity
+- **Analytics**: Microsoft Clarity, PostHog, Google Analytics 4
 - **Hosting**: Vercel
 
 ## Getting Started

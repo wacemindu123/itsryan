@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { analytics } from '@/lib/analytics';
 
 export default function NewsletterCTA() {
   const [isVisible, setIsVisible] = useState(false);
@@ -26,6 +27,7 @@ export default function NewsletterCTA() {
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    analytics.ctaClick('newsletter_cta_dismissed', 'floating_cta');
     setIsVisible(false);
     setIsDismissed(true);
     localStorage.setItem('newsletter_cta_dismissed', 'true');
@@ -37,6 +39,7 @@ export default function NewsletterCTA() {
     <div className="fixed bottom-5 right-5 z-40 animate-[slideUp_0.3s_ease-out]">
       <Link
         href="/newsletter"
+        onClick={() => analytics.ctaClick('join_newsletter', 'floating_cta')}
         className="group flex items-center gap-2 px-4 py-3 bg-[var(--accent)] text-white rounded-full shadow-lg hover:bg-[var(--accent-hover)] hover:scale-[1.02] active:scale-[0.98] transition-all text-sm font-medium"
       >
         <svg 
