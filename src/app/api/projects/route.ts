@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
@@ -25,6 +26,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   let supabase;
   try {
     supabase = createServerSupabaseClient();
@@ -65,6 +69,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   let supabase;
   try {
     supabase = createServerSupabaseClient();
@@ -107,6 +114,9 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   let supabase;
   try {
     supabase = createServerSupabaseClient();

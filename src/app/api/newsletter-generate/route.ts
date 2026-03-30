@@ -1,8 +1,12 @@
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 export async function POST() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const openaiKey = process.env.OPENAI_API_KEY;
   
   if (!openaiKey) {

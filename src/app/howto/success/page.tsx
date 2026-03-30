@@ -10,32 +10,52 @@ function HowtoSuccessContent() {
   const [guideUrl, setGuideUrl] = useState<string | null>(null);
   const hasRun = useRef(false);
 
+  const sessionId = searchParams.get('session_id');
+  const guideId = searchParams.get('guide_id');
+
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    const sessionId = searchParams.get('session_id');
-    const guideId = searchParams.get('guide_id');
+    if (!sessionId || !guideId) return;
 
-    if (!sessionId || !guideId) {
-      setStatus('error');
-      return;
-    }
-
-    // For now, just show success — in production, verify the session with Stripe webhook
-    fetch('/api/howto-guides')
-      .then(res => res.json())
-      .then(guides => {
-        const guide = guides.find((g: { id: number }) => g.id === parseInt(guideId));
-        if (guide) {
-          setGuideUrl(guide.google_doc_url);
+    fetch(`/api/howto-confirm?session_id=${encodeURIComponent(sessionId)}&guide_id=${encodeURIComponent(guideId)}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error('confirm_failed');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.url) {
+          setGuideUrl(data.url);
           setStatus('success');
         } else {
           setStatus('error');
         }
       })
       .catch(() => setStatus('error'));
-  }, [searchParams]);
+  }, [sessionId, guideId]);
+
+  if (!sessionId || !guideId) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-5">
+        <div className="max-w-md w-full text-center">
+          <div>
+            <div className="text-6xl mb-6">😕</div>
+            <h1 className="text-2xl font-semibold text-white mb-3">Something went wrong</h1>
+            <p className="text-white/60 mb-8">We couldn&apos;t confirm your purchase. Please contact support.</p>
+            <Link
+              href="/howto"
+              className="inline-block px-8 py-3.5 bg-white text-black rounded-full font-medium text-[17px] hover:bg-white/90 transition-all"
+            >
+              Back to Guides
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-5">

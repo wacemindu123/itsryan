@@ -1,7 +1,17 @@
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/auth';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+
+function sanitizeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
 
 function generateUnsubscribeToken(email: string): string {
   const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret-change-me';
@@ -46,7 +56,7 @@ function generateEmailHtml(subject: string, content: string, email: string): str
           <tr>
             <td style="padding-bottom: 32px;">
               <div style="font-size: 16px; line-height: 1.6; color: #1d1d1f;">
-                ${content.replace(/\n/g, '<br>')}
+                ${sanitizeHtml(content).replace(/\n/g, '<br>')}
               </div>
             </td>
           </tr>
@@ -72,6 +82,9 @@ function generateEmailHtml(subject: string, content: string, email: string): str
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.NEWSLETTER_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
 

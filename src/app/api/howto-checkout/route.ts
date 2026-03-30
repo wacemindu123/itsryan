@@ -18,6 +18,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Guide ID and email are required' }, { status: 400 });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (typeof email !== 'string' || !emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+    }
+
     // Check if already purchased
     const { data: existingPurchase } = await supabase
       .from('howto_purchases')
@@ -78,22 +84,27 @@ export async function POST(request: NextRequest) {
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.itsryan.ai';
+
+    // Use stored Stripe Price if available, otherwise fall back to inline price_data
+    const lineItems = guide.stripe_price_id
+      ? [{ price: guide.stripe_price_id, quantity: 1 }]
+      : [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: guide.title,
+              description: guide.description || 'How-To Guide by ItsRyan.ai',
+            },
+            unit_amount: Math.round((guide.price || 1.99) * 100),
+          },
+          quantity: 1,
+        }];
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: guide.title,
-            description: guide.description || 'How-To Guide by ItsRyan.ai',
-          },
-          unit_amount: Math.round((guide.price || 1.99) * 100),
-        },
-        quantity: 1,
-      }],
+      line_items: lineItems,
       mode: 'payment',
       success_url: `${siteUrl}/howto/success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`,
       cancel_url: `${siteUrl}/howto`,

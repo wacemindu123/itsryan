@@ -21,6 +21,8 @@ interface HowtoGuide {
   display_order: number;
   featured: boolean;
   created_at: string;
+  stripe_product_id: string | null;
+  stripe_price_id: string | null;
 }
 
 const CATEGORIES = ['General', 'AI', 'Marketing', 'Automation', 'Content', 'Customer Service', 'Analytics', 'Email'];
@@ -47,6 +49,8 @@ export default function AdminHowtoPage() {
   const [formFeatured, setFormFeatured] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const loadGuides = useCallback(async () => {
     try {
@@ -138,6 +142,25 @@ export default function AdminHowtoPage() {
     }
   };
 
+  const syncToStripe = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch('/api/stripe/sync-products', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncResult({ success: true, message: data.message || `Synced ${data.synced} guides` });
+        loadGuides();
+      } else {
+        setSyncResult({ success: false, message: data.error || 'Sync failed' });
+      }
+    } catch {
+      setSyncResult({ success: false, message: 'Network error during sync' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const deleteGuide = async (id: number) => {
     if (!confirm('Are you sure you want to delete this guide?')) return;
 
@@ -183,6 +206,13 @@ export default function AdminHowtoPage() {
             <span className="text-[21px] font-semibold text-[var(--text-primary)]">How-To Guides</span>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={syncToStripe}
+              disabled={isSyncing}
+              className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isSyncing ? 'Syncing...' : 'Sync to Stripe'}
+            </button>
             <Link href="/howto" target="_blank" className="text-sm text-[var(--accent)] hover:underline">
               View Live Page ↗
             </Link>
@@ -196,6 +226,15 @@ export default function AdminHowtoPage() {
       </header>
 
       <div className="max-w-[1200px] mx-auto px-5 py-8">
+        {/* Sync result banner */}
+        {syncResult && (
+          <div className={`mb-4 p-4 rounded-xl ${syncResult.success ? 'bg-purple-50 border border-purple-200' : 'bg-red-50 border border-red-200'}`}>
+            <p className={`text-sm font-medium ${syncResult.success ? 'text-purple-700' : 'text-red-600'}`}>
+              {syncResult.message}
+            </p>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
@@ -249,6 +288,7 @@ export default function AdminHowtoPage() {
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Title</th>
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Category</th>
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Price</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Stripe</th>
                   <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Status</th>
                   <th className="text-right p-4 text-sm font-medium text-[var(--text-secondary)]">Actions</th>
                 </tr>
@@ -256,7 +296,7 @@ export default function AdminHowtoPage() {
               <tbody>
                 {guides.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-[var(--text-secondary)]">
+                    <td colSpan={6} className="p-8 text-center text-[var(--text-secondary)]">
                       No guides yet. Click &quot;+ Add Guide&quot; to create one.
                     </td>
                   </tr>
@@ -273,6 +313,21 @@ export default function AdminHowtoPage() {
                       </td>
                       <td className="p-4 text-sm text-[var(--text-secondary)]">{guide.category}</td>
                       <td className="p-4 text-sm text-[var(--text-primary)] font-medium">${guide.price?.toFixed(2)}</td>
+                      <td className="p-4">
+                        {guide.stripe_product_id ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                            Synced
+                          </span>
+                        ) : guide.price > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                            Not synced
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Free</span>
+                        )}
+                      </td>
                       <td className="p-4">
                         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                           guide.status === 'new' ? 'bg-blue-100 text-blue-700' :
