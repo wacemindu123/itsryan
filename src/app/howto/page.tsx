@@ -11,7 +11,7 @@ interface HowtoGuide {
   title: string;
   description: string | null;
   category: string;
-  google_doc_url: string;
+  google_doc_url?: string;
   preview_image_url: string | null;
   price: number;
   energy: number;
@@ -67,7 +67,7 @@ export default function HowtoPage() {
 
   const handlePurchase = async (guideId: number) => {
     const guide = guides.find(g => g.id === guideId);
-    if (guide && guide.price === 0) {
+    if (guide && guide.price === 0 && guide.google_doc_url) {
       analytics.ctaClick('free_guide_' + guide.title, 'howto_page');
       window.open(guide.google_doc_url, '_blank');
       return;
