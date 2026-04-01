@@ -121,7 +121,7 @@ export default function AdminHowtoPage() {
       google_doc_url: formGoogleDocUrl || null,
       prompt_content: formPromptContent || null,
       preview_image_url: formPreviewImageUrl || null,
-      price: parseFloat(formPrice) || 1.99,
+      price: isNaN(parseFloat(formPrice)) ? 1.99 : parseFloat(formPrice),
       energy: parseInt(formEnergy) || 50,
       status: formStatus,
       tiktok_url: formTiktokUrl || null,
