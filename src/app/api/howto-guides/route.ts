@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
       console.error('Stripe product creation failed (continuing):', stripeErr);
     }
 
-    const basePayload: Record<string, unknown> = {
+    // Core fields that always exist
+    const corePayload: Record<string, unknown> = {
       title,
       description: description || null,
       category: category || 'General',
@@ -101,30 +102,35 @@ export async function POST(request: NextRequest) {
       tiktok_url: tiktok_url || null,
       display_order: display_order ?? 0,
       featured: featured ?? false,
-      stripe_product_id,
-      stripe_price_id,
     };
 
-    // Try with new columns (slug, prompt_content), fall back without
+    // Try full payload with all new columns
     const fullPayload = {
-      ...basePayload,
+      ...corePayload,
       slug,
       prompt_content: prompt_content || null,
+      stripe_product_id,
+      stripe_price_id,
     };
 
     let result = await supabase.from('howto_guides').insert([fullPayload]).select();
 
     if (result.error) {
-      // Retry without new columns if they don't exist yet
-      result = await supabase.from('howto_guides').insert([basePayload]).select();
+      console.error('Full insert failed, retrying with core fields:', result.error.message);
+      // Retry with only core fields
+      result = await supabase.from('howto_guides').insert([corePayload]).select();
     }
 
-    if (result.error) throw result.error;
+    if (result.error) {
+      return NextResponse.json({ error: result.error.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
     console.error('Error creating howto guide:', error);
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = error && typeof error === 'object' && 'message' in error
+      ? (error as { message: string }).message
+      : JSON.stringify(error);
     return NextResponse.json({ error: 'Failed to create guide: ' + msg }, { status: 500 });
   }
 }
