@@ -5,6 +5,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
 export async function GET() {
   let supabase;
   try {
@@ -51,12 +61,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, description, category, google_doc_url, preview_image_url, price, energy, related_ids, status, tiktok_url, display_order, featured } = body;
+    const { title, description, category, google_doc_url, prompt_content, preview_image_url, price, energy, related_ids, status, tiktok_url, display_order, featured } = body;
 
-    if (!title || !google_doc_url) {
-      return NextResponse.json({ error: 'Title and Google Doc URL are required' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
+    const slug = generateSlug(title) + '-' + Date.now().toString(36);
     const guidePrice = price ?? 1.99;
 
     // Create Stripe product if price > 0
@@ -81,9 +92,11 @@ export async function POST(request: NextRequest) {
       .from('howto_guides')
       .insert([{
         title,
+        slug,
         description: description || null,
         category: category || 'General',
-        google_doc_url,
+        google_doc_url: google_doc_url || null,
+        prompt_content: prompt_content || null,
         preview_image_url: preview_image_url || null,
         price: guidePrice,
         energy: energy ?? 50,

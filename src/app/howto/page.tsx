@@ -2,16 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { BookOpen, Video, Sparkles, TrendingUp, Cpu, MessageSquare, BarChart3, Mail } from 'lucide-react';
+import { BookOpen, Video, Sparkles, TrendingUp, Cpu, MessageSquare, BarChart3, Mail, Copy, Check } from 'lucide-react';
 import RadialOrbitalTimeline from '@/components/ui/radial-orbital-timeline';
 import { analytics } from '@/lib/analytics';
 
 interface HowtoGuide {
   id: number;
   title: string;
+  slug?: string;
   description: string | null;
   category: string;
   google_doc_url?: string;
+  prompt_content?: string;
   preview_image_url: string | null;
   price: number;
   energy: number;
@@ -41,6 +43,9 @@ export default function HowtoPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [promptGuide, setPromptGuide] = useState<HowtoGuide | null>(null);
+  const [copied, setCopied] = useState(false);
   const [purchaseResult, setPurchaseResult] = useState<{
     success: boolean;
     message?: string;
@@ -65,16 +70,46 @@ export default function HowtoPage() {
     loadGuides();
   }, [loadGuides]);
 
+  const copyPrompt = async (text: string, title: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      analytics.ctaClick('copy_prompt_' + title, 'howto_page');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const handlePurchase = async (guideId: number) => {
     const guide = guides.find(g => g.id === guideId);
-    if (guide && guide.price === 0 && guide.google_doc_url) {
+    if (!guide) return;
+
+    // Free guide with prompt content → show prompt modal
+    if (guide.price === 0 && guide.prompt_content) {
+      analytics.ctaClick('view_prompt_' + guide.title, 'howto_page');
+      setPromptGuide(guide);
+      setShowPromptModal(true);
+      setCopied(false);
+      return;
+    }
+
+    // Free guide with URL → open directly
+    if (guide.price === 0 && guide.google_doc_url) {
       analytics.ctaClick('free_guide_' + guide.title, 'howto_page');
       window.open(guide.google_doc_url, '_blank');
       return;
     }
-    if (guide) {
-      analytics.ctaClick('unlock_guide_' + guide.title, 'howto_page');
-    }
+
+    // Paid guide → show email/checkout modal
+    analytics.ctaClick('unlock_guide_' + guide.title, 'howto_page');
     setSelectedGuideId(guideId);
     setShowEmailModal(true);
     setPurchaseResult(null);
@@ -232,7 +267,7 @@ export default function HowtoPage() {
                         disabled={guide.status === 'coming-soon'}
                         className="px-4 py-2 text-[13px] font-medium bg-white text-black rounded-full hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                       >
-                        {guide.status === 'coming-soon' ? 'Coming Soon' : guide.price === 0 ? 'Free — View Guide' : `Unlock $${guide.price?.toFixed(2) || '1.99'}`}
+                        {guide.status === 'coming-soon' ? 'Coming Soon' : guide.price === 0 && guide.prompt_content ? 'Free — View Prompt' : guide.price === 0 ? 'Free — View Guide' : `Unlock $${guide.price?.toFixed(2) || '1.99'}`}
                       </button>
                     </div>
                     {guide.tiktok_url && (
@@ -322,6 +357,69 @@ export default function HowtoPage() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt Modal */}
+      {showPromptModal && promptGuide && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1c1e] rounded-2xl max-w-2xl w-full shadow-2xl border border-white/10 flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between px-8 pt-8 pb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-white">{promptGuide.title}</h2>
+                {promptGuide.description && (
+                  <p className="text-white/50 text-sm mt-1">{promptGuide.description}</p>
+                )}
+              </div>
+              <button
+                onClick={() => copyPrompt(promptGuide.prompt_content!, promptGuide.title)}
+                className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full text-sm font-medium hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check size={14} />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="px-8 pb-2 overflow-y-auto flex-1 min-h-0">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+                <pre className="text-[14px] text-white/80 leading-[1.7] whitespace-pre-wrap font-mono break-words">
+                  {promptGuide.prompt_content}
+                </pre>
+              </div>
+            </div>
+
+            <div className="px-8 py-5 border-t border-white/10 flex items-center justify-between">
+              {promptGuide.google_doc_url && (
+                <a
+                  href={promptGuide.google_doc_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Open Full Guide →
+                </a>
+              )}
+              <button
+                onClick={() => {
+                  setShowPromptModal(false);
+                  setPromptGuide(null);
+                  setCopied(false);
+                }}
+                className="text-sm text-white/40 hover:text-white/70 transition-colors cursor-pointer ml-auto"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

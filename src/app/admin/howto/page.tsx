@@ -11,7 +11,8 @@ interface HowtoGuide {
   title: string;
   description: string | null;
   category: string;
-  google_doc_url: string;
+  google_doc_url: string | null;
+  prompt_content: string | null;
   preview_image_url: string | null;
   price: number;
   energy: number;
@@ -40,6 +41,7 @@ export default function AdminHowtoPage() {
   const [formDescription, setFormDescription] = useState('');
   const [formCategory, setFormCategory] = useState('General');
   const [formGoogleDocUrl, setFormGoogleDocUrl] = useState('');
+  const [formPromptContent, setFormPromptContent] = useState('');
   const [formPreviewImageUrl, setFormPreviewImageUrl] = useState('');
   const [formPrice, setFormPrice] = useState('1.99');
   const [formEnergy, setFormEnergy] = useState('50');
@@ -69,6 +71,7 @@ export default function AdminHowtoPage() {
     setFormDescription('');
     setFormCategory('General');
     setFormGoogleDocUrl('');
+    setFormPromptContent('');
     setFormPreviewImageUrl('');
     setFormPrice('1.99');
     setFormEnergy('50');
@@ -84,7 +87,8 @@ export default function AdminHowtoPage() {
     setFormTitle(guide.title);
     setFormDescription(guide.description || '');
     setFormCategory(guide.category);
-    setFormGoogleDocUrl(guide.google_doc_url);
+    setFormGoogleDocUrl(guide.google_doc_url || '');
+    setFormPromptContent(guide.prompt_content || '');
     setFormPreviewImageUrl(guide.preview_image_url || '');
     setFormPrice(String(guide.price));
     setFormEnergy(String(guide.energy));
@@ -97,8 +101,12 @@ export default function AdminHowtoPage() {
   };
 
   const saveGuide = async () => {
-    if (!formTitle || !formGoogleDocUrl) {
-      setSaveResult({ success: false, message: 'Title and Google Doc URL are required.' });
+    if (!formTitle) {
+      setSaveResult({ success: false, message: 'Title is required.' });
+      return;
+    }
+    if (!formGoogleDocUrl && !formPromptContent) {
+      setSaveResult({ success: false, message: 'Either a Google Doc URL or Prompt Content is required.' });
       return;
     }
 
@@ -110,7 +118,8 @@ export default function AdminHowtoPage() {
       title: formTitle,
       description: formDescription || null,
       category: formCategory,
-      google_doc_url: formGoogleDocUrl,
+      google_doc_url: formGoogleDocUrl || null,
+      prompt_content: formPromptContent || null,
       preview_image_url: formPreviewImageUrl || null,
       price: parseFloat(formPrice) || 1.99,
       energy: parseInt(formEnergy) || 50,
@@ -417,7 +426,7 @@ export default function AdminHowtoPage() {
 
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Google Doc URL *
+                  Google Doc URL
                 </label>
                 <input
                   type="url"
@@ -426,6 +435,21 @@ export default function AdminHowtoPage() {
                   placeholder="https://docs.google.com/document/d/..."
                   className="w-full px-4 py-3 border border-[#d2d2d7] rounded-xl focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)]"
                 />
+                <p className="text-xs text-[var(--text-secondary)] mt-1">Leave empty if this is a prompt-only guide</p>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Prompt Content
+                </label>
+                <textarea
+                  value={formPromptContent}
+                  onChange={(e) => setFormPromptContent(e.target.value)}
+                  placeholder="Paste the full prompt here. Users will see this in a copyable modal..."
+                  rows={6}
+                  className="w-full px-4 py-3 border border-[#d2d2d7] rounded-xl focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--text-primary)] resize-y font-mono text-sm"
+                />
+                <p className="text-xs text-[var(--text-secondary)] mt-1">Users will see a scrollable modal with a copy-to-clipboard button</p>
               </div>
 
               <div>
@@ -540,7 +564,7 @@ export default function AdminHowtoPage() {
             <div className="flex gap-3 mt-8">
               <button
                 onClick={saveGuide}
-                disabled={isSaving || !formTitle || !formGoogleDocUrl}
+                disabled={isSaving || !formTitle || (!formGoogleDocUrl && !formPromptContent)}
                 className="px-6 py-3 bg-[var(--accent)] text-white rounded-full font-medium hover:bg-[var(--accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSaving ? 'Saving...' : editingId ? 'Update Guide' : 'Create Guide'}
