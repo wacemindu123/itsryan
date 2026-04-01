@@ -199,16 +199,16 @@ export default function HowtoPage() {
             Learn what I teach on TikTok.
           </h1>
           <p className="text-[17px] sm:text-[19px] text-white/60 max-w-[620px] mx-auto leading-[1.6] mb-4">
-            Step-by-step guides from my TikTok videos. Each guide is a detailed walkthrough you can follow at your own pace. Unlock any guide for $1.99 — every purchase helps fund free AI solutions for small businesses I do for free.
+            Step-by-step guides from my TikTok videos — follow along at your own pace, as many times as you need. Any paid guides go directly toward helping me continue doing free AI work for small businesses.
           </p>
-          <p className="text-[13px] text-white/40">
+          <p className="text-[13px] text-white/40 hidden md:block">
             Click any node on the orbital to explore • Click empty space to reset
           </p>
         </div>
       </section>
 
-      {/* Orbital Timeline */}
-      <section className="px-5 pb-16">
+      {/* Orbital Timeline — hidden on mobile */}
+      <section className="px-5 pb-16 hidden md:block">
         <div className="max-w-[980px] mx-auto">
           {loading ? (
             <div className="h-[600px] flex items-center justify-center">
@@ -226,11 +226,21 @@ export default function HowtoPage() {
         </div>
       </section>
 
-      {/* Card Grid Fallback (mobile-friendly list) */}
+      {/* Mobile loading state */}
+      {loading && (
+        <div className="md:hidden flex items-center justify-center py-24">
+          <div className="animate-pulse text-white/50">Loading guides...</div>
+        </div>
+      )}
+
+      {/* Card Grid — always visible, primary on mobile */}
       {!loading && guides.length > 0 && (
         <section className="px-5 pb-24">
           <div className="max-w-[980px] mx-auto">
-            <h2 className="text-[24px] font-semibold text-white tracking-[-0.02em] mb-8 text-center">
+            <h2 className="text-[24px] font-semibold text-white tracking-[-0.02em] mb-8 text-center md:hidden">
+              Browse Guides
+            </h2>
+            <h2 className="text-[24px] font-semibold text-white tracking-[-0.02em] mb-8 text-center hidden md:block">
               All Guides
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
