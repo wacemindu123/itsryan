@@ -88,34 +88,44 @@ export async function POST(request: NextRequest) {
       console.error('Stripe product creation failed (continuing):', stripeErr);
     }
 
-    const { data, error } = await supabase
-      .from('howto_guides')
-      .insert([{
-        title,
-        slug,
-        description: description || null,
-        category: category || 'General',
-        google_doc_url: google_doc_url || null,
-        prompt_content: prompt_content || null,
-        preview_image_url: preview_image_url || null,
-        price: guidePrice,
-        energy: energy ?? 50,
-        related_ids: related_ids || [],
-        status: status || 'available',
-        tiktok_url: tiktok_url || null,
-        display_order: display_order ?? 0,
-        featured: featured ?? false,
-        stripe_product_id,
-        stripe_price_id,
-      }])
-      .select();
+    const basePayload: Record<string, unknown> = {
+      title,
+      description: description || null,
+      category: category || 'General',
+      google_doc_url: google_doc_url || null,
+      preview_image_url: preview_image_url || null,
+      price: guidePrice,
+      energy: energy ?? 50,
+      related_ids: related_ids || [],
+      status: status || 'available',
+      tiktok_url: tiktok_url || null,
+      display_order: display_order ?? 0,
+      featured: featured ?? false,
+      stripe_product_id,
+      stripe_price_id,
+    };
 
-    if (error) throw error;
+    // Try with new columns (slug, prompt_content), fall back without
+    const fullPayload = {
+      ...basePayload,
+      slug,
+      prompt_content: prompt_content || null,
+    };
 
-    return NextResponse.json({ success: true, data });
+    let result = await supabase.from('howto_guides').insert([fullPayload]).select();
+
+    if (result.error) {
+      // Retry without new columns if they don't exist yet
+      result = await supabase.from('howto_guides').insert([basePayload]).select();
+    }
+
+    if (result.error) throw result.error;
+
+    return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
     console.error('Error creating howto guide:', error);
-    return NextResponse.json({ error: 'Failed to create guide' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create guide: ' + msg }, { status: 500 });
   }
 }
 
