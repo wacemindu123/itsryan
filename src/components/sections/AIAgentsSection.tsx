@@ -1,65 +1,43 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
+import { ShieldCheck, MessageCircle, CalendarCheck, Database, Mail, BarChart3 } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
+import { useInView } from '@/hooks/useInView';
 
 const agentCards = [
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
+    icon: <ShieldCheck className="w-8 h-8" />,
     title: 'Never miss a lead again.',
     description: 'AI agents monitor your inbound channels 24/7 — qualifying leads, asking the right questions, and routing hot prospects directly to your calendar. No more leads falling through the cracks at 2am.',
     stat: 'Businesses report 4–7× improvement in lead conversion rates with agentic workflows.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-      </svg>
-    ),
+    icon: <MessageCircle className="w-8 h-8" />,
     title: 'Support that scales without hiring.',
     description: 'Deploy a support agent that handles FAQs, order inquiries, and common issues end-to-end — escalating to humans only when it truly matters. Your customers get instant, accurate answers every time.',
     stat: '68% of customer service interactions projected to be handled autonomously by 2028.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
+    icon: <CalendarCheck className="w-8 h-8" />,
     title: 'Booking, follow-ups, reminders — handled.',
     description: 'From booking discovery calls to sending follow-up sequences and chasing no-shows, your AI agent keeps your pipeline moving without you lifting a finger.',
     stat: 'Teams save 10+ hours/week on scheduling and follow-up alone.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-      </svg>
-    ),
+    icon: <Database className="w-8 h-8" />,
     title: 'Always-clean CRM. Zero manual entry.',
     description: 'Your agent logs calls, updates contact records, adds notes after meetings, and keeps your CRM accurate in real time — so your data is always reliable, and your team stays focused on selling.',
     stat: 'Eliminates the #1 sales rep complaint: manual CRM updates.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
+    icon: <Mail className="w-8 h-8" />,
     title: 'Outreach that writes and sends itself.',
     description: 'Agents research prospects, draft personalized outreach emails, manage drip sequences, and report on what\'s working — all aligned to your brand voice and goals.',
     stat: 'AI-powered outreach delivers 3× higher response rates than generic sequences.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
+    icon: <BarChart3 className="w-8 h-8" />,
     title: 'Weekly reports. Zero effort.',
     description: 'Get automated weekly summaries of your pipeline, support tickets, marketing performance, and key metrics — without building a single dashboard or waiting on your team.',
     stat: 'Organizations using agentic workflows report 171% average ROI within the first year.',
@@ -74,24 +52,7 @@ const stats = [
 
 export default function AIAgentsSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+  const isVisible = useInView(sectionRef, { threshold: 0.1 });
 
   const scrollToContact = () => {
     analytics.ctaClick('build_agent_stack', 'ai_agents_section');

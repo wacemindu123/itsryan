@@ -26,7 +26,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('howto_guides')
-      .select('*')
+      .select('id, title, slug, description, category, google_doc_url, preview_image_url, price, energy, related_ids, status, tiktok_url, display_order, featured, created_at, stripe_product_id, stripe_price_id')
       .order('display_order', { ascending: true });
 
     if (error) throw error;

@@ -1,32 +1,21 @@
 'use client';
 
 import { useEffect, useState, useRef, FormEvent } from 'react';
+import { useInView } from '@/hooks/useInView';
 import Image from 'next/image';
 import { analytics } from '@/lib/analytics';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string | null;
-  thumbnail: string | null;
-  status: string;
-  demo_url: string | null;
-  video_url: string | null;
-  tags: string[];
-  featured: boolean;
-  display_order: number;
-}
+import type { Project } from '@/types';
 
 export default function ProjectShowcase() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
+  const isVisible = useInView(sectionRef, { threshold: 0.1 });
   const [hasCheckedUrl, setHasCheckedUrl] = useState(false);
 
   useEffect(() => {
@@ -71,23 +60,6 @@ export default function ProjectShowcase() {
     
     setHasCheckedUrl(true);
   }, [projects, hasCheckedUrl]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   const handleWaitlistSubmit = async (e: FormEvent) => {
     e.preventDefault();

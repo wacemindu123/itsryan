@@ -4,22 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BookOpen, Video, Sparkles, TrendingUp, Cpu, MessageSquare, BarChart3, Mail, Copy, Check, ExternalLink } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
-
-interface HowtoGuide {
-  id: number;
-  title: string;
-  slug: string;
-  description: string | null;
-  category: string;
-  google_doc_url?: string;
-  prompt_content?: string;
-  preview_image_url: string | null;
-  price: number;
-  energy: number;
-  status: string;
-  tiktok_url: string | null;
-  created_at: string;
-}
+import type { HowtoGuide } from '@/types';
 
 const categoryIcons: Record<string, React.ElementType> = {
   'AI': Cpu,

@@ -1,25 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useInView } from '@/hooks/useInView';
 import Link from 'next/link';
 import Image from 'next/image';
 import { analytics } from '@/lib/analytics';
-
-interface Business {
-  id: number;
-  name: string;
-  thumbnail: string | null;
-  website_url: string | null;
-  video_links: string[];
-  featured: boolean;
-  display_order: number;
-}
+import type { Business } from '@/types';
 
 export default function BusinessShowcase() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const isVisible = useInView(sectionRef, { threshold: 0.1 });
 
   useEffect(() => {
     async function loadBusinesses() {
@@ -34,23 +26,6 @@ export default function BusinessShowcase() {
       }
     }
     loadBusinesses();
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
   }, []);
 
   const featuredBusinesses = businesses.filter(b => b.featured);

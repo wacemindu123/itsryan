@@ -2,14 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
-
-interface Business {
-  id: number;
-  name: string;
-  value_delivered: number;
-  revenue_generated: number;
-  color: string;
-}
+import type { Business } from '@/types';
 
 const GOAL = 1000000;
 const SEGMENTS = 20;

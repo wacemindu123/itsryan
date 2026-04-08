@@ -2,39 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { analytics } from '@/lib/analytics';
-
-interface Prompt {
-  id: number;
-  title: string;
-  icon: string;
-  description: string;
-  tags: string[];
-  content: string;
-}
+import { useInView } from '@/hooks/useInView';
+import type { Prompt } from '@/types';
 
 export default function PromptLibrary() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const isVisible = useInView(sectionRef, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     async function loadPrompts() {

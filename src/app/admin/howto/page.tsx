@@ -4,27 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useUser, SignIn, SignOutButton } from '@clerk/nextjs';
 
-export const dynamic = 'force-dynamic';
+import type { HowtoGuide } from '@/types';
 
-interface HowtoGuide {
-  id: number;
-  title: string;
-  description: string | null;
-  category: string;
-  google_doc_url: string | null;
-  prompt_content: string | null;
-  preview_image_url: string | null;
-  price: number;
-  energy: number;
-  related_ids: number[];
-  status: string;
-  tiktok_url: string | null;
-  display_order: number;
-  featured: boolean;
-  created_at: string;
-  stripe_product_id: string | null;
-  stripe_price_id: string | null;
-}
+export const dynamic = 'force-dynamic';
 
 const CATEGORIES = ['General', 'AI', 'Marketing', 'Automation', 'Content', 'Customer Service', 'Analytics', 'Email'];
 const STATUSES = ['available', 'new', 'coming-soon'];

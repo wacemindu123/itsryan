@@ -14,14 +14,19 @@ export function getSupabase() {
   return supabaseClient;
 }
 
-// Server-side client for API routes
+// Server-side client for API routes (cached per process)
+let serverClient: SupabaseClient | null = null;
+
 export function createServerSupabaseClient() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  if (!url || !key) {
-    throw new Error('Supabase URL and Key are required');
+  if (!serverClient) {
+    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!url || !key) {
+      throw new Error('Supabase URL and Key are required');
+    }
+    
+    serverClient = createClient(url, key);
   }
-  
-  return createClient(url, key);
+  return serverClient;
 }

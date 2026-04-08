@@ -5,25 +5,7 @@ import Link from 'next/link';
 import { BookOpen, Video, Sparkles, TrendingUp, Cpu, MessageSquare, BarChart3, Mail, Copy, Check } from 'lucide-react';
 import RadialOrbitalTimeline from '@/components/ui/radial-orbital-timeline';
 import { analytics } from '@/lib/analytics';
-
-interface HowtoGuide {
-  id: number;
-  title: string;
-  slug?: string;
-  description: string | null;
-  category: string;
-  google_doc_url?: string;
-  prompt_content?: string;
-  preview_image_url: string | null;
-  price: number;
-  energy: number;
-  related_ids: number[];
-  status: string;
-  tiktok_url: string | null;
-  display_order: number;
-  featured: boolean;
-  created_at: string;
-}
+import type { HowtoGuide } from '@/types';
 
 const categoryIcons: Record<string, React.ElementType> = {
   'AI': Cpu,
