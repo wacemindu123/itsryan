@@ -204,7 +204,14 @@ export default function SubmissionsDashboard() {
       <AlertBanner uncontacted={kpis.uncontacted} oldestStaleDays={kpis.oldestStaleDays} />
 
       {/* ── KPI Row ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <KpiCard
+          label="New Today"
+          value={kpis.today}
+          subtitle={`${new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+          tag={{ text: 'today', color: 'purple' }}
+          flash={flashToday}
+        />
         <KpiCard
           label="Contacted"
           value={kpis.contacted}

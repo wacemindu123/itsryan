@@ -152,7 +152,7 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-[#242a38]">
-              {['Created', 'Name', 'Business', 'Email', 'Phone', 'Website', 'Themes', 'Contacted'].map(h => (
+              {['Created', 'Name', 'Business', 'Email', 'Challenge', 'Themes', 'Contacted'].map(h => (
                 <th key={h} className="text-[11px] font-semibold text-[#8a93a6] uppercase tracking-wider px-3 py-2.5">{h}</th>
               ))}
             </tr>
@@ -160,7 +160,7 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
           <tbody>
             {paged.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center text-[#8a93a6] text-sm py-12">No leads match filters</td>
+                <td colSpan={7} className="text-center text-[#8a93a6] text-sm py-12">No leads match filters</td>
               </tr>
             ) : (
               paged.map(sub => (
@@ -176,19 +176,8 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
                   </td>
                   <td className="px-3 py-3 text-[13px] text-[#8a93a6]">{sub.business}</td>
                   <td className="px-3 py-3 text-[13px] text-[#8a93a6] break-all">{sub.email}</td>
-                  <td className="px-3 py-3 text-[13px] text-[#8a93a6]">{sub.phone || '–'}</td>
-                  <td className="px-3 py-3 text-[13px] text-[#8a93a6] max-w-[120px] truncate">
-                    {sub.website ? (
-                      <a
-                        href={sub.website.match(/^https?:\/\//) ? sub.website : `https://${sub.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="text-[#7c5cff] hover:underline"
-                      >
-                        {sub.website.replace(/^https?:\/\//, '').slice(0, 25)}
-                      </a>
-                    ) : '–'}
+                  <td className="px-3 py-3 text-[13px] text-white/70 max-w-[260px]">
+                    <p className="line-clamp-2 leading-snug">{sub.scaling_challenge || '–'}</p>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex flex-wrap gap-1">
