@@ -258,8 +258,9 @@ export default function SubmissionsDashboard() {
                 />
                 <YAxis tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12 }}
-                  labelStyle={{ color: '#8a93a6' }}
+                  contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12, color: '#fff' }}
+                  labelStyle={{ color: '#fff' }}
+                  itemStyle={{ color: '#e2e8f0' }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12, color: '#8a93a6' }} />
                 <Bar dataKey="total" name="Submissions" fill="#7c5cff" radius={[4, 4, 0, 0]} />
@@ -287,7 +288,9 @@ export default function SubmissionsDashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12 }}
+                  contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12, color: '#fff' }}
+                  labelStyle={{ color: '#fff' }}
+                  itemStyle={{ color: '#e2e8f0' }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </PieChart>
@@ -318,7 +321,7 @@ export default function SubmissionsDashboard() {
               <BarChart data={staleness}>
                 <XAxis dataKey="bucket" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={{ stroke: '#242a38' }} tickLine={false} />
                 <YAxis tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12, color: '#fff' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: '#e2e8f0' }} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {staleness.map((entry) => (
                     <Cell key={entry.bucket} fill={STALENESS_COLORS[entry.bucket] || '#7c5cff'} />
@@ -336,7 +339,7 @@ export default function SubmissionsDashboard() {
               <BarChart data={emailDomains} layout="vertical">
                 <XAxis type="number" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="domain" type="category" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} width={100} />
-                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12, color: '#fff' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: '#e2e8f0' }} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {emailDomains.map((_, i) => (
                     <Cell key={i} fill={DOMAIN_COLORS[i % DOMAIN_COLORS.length]} />
@@ -354,7 +357,7 @@ export default function SubmissionsDashboard() {
               <BarChart data={warmOverlap} layout="vertical">
                 <XAxis type="number" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="source" type="category" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
-                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#12151d', border: '1px solid #242a38', borderRadius: 10, fontSize: 12, color: '#fff' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: '#e2e8f0' }} />
                 <Bar dataKey="count" fill="#22c55e" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
