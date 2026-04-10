@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 const adminTabs = [
-  { href: '/admin/submissions', label: 'Submissions' },
+  { href: '/admin/submissions', label: 'Submissions Dashboard' },
   { href: '/admin/signups', label: 'Class Signups' },
   { href: '/admin/prompts', label: 'Prompts' },
   { href: '/admin/businesses', label: 'Businesses' },

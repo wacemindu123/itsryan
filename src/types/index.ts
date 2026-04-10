@@ -32,6 +32,12 @@ export interface Submission {
   scaling_challenge: string;
   created_at: string;
   contacted: boolean;
+  contacted_at: string | null;
+}
+
+export interface SubmissionEnriched extends Submission {
+  themes: string[];
+  is_warm: boolean;
 }
 
 export interface ClassSignup {
