@@ -334,7 +334,7 @@ export default function HowtoPage() {
                   disabled={isPurchasing || !purchaseEmail}
                   className="w-full py-3 bg-white text-black rounded-full font-medium text-[15px] hover:bg-white/90 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {isPurchasing ? 'Processing...' : 'Pay $1.99 & Get Access'}
+                  {isPurchasing ? 'Processing...' : `Pay $${guides.find(g => g.id === selectedGuideId)?.price?.toFixed(2) || '1.99'} & Get Access`}
                 </button>
               </div>
             )}
