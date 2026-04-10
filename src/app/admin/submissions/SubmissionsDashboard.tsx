@@ -186,7 +186,7 @@ export default function SubmissionsDashboard() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[28px] font-bold text-white tracking-tight">Submissions</h1>
+            <h1 className="text-[22px] sm:text-[28px] font-bold text-white tracking-tight">Submissions</h1>
             <LiveDot connected={realtimeConnected} />
           </div>
           <p className="text-[13px] text-[#8a93a6] mt-1">
@@ -204,7 +204,7 @@ export default function SubmissionsDashboard() {
       <AlertBanner uncontacted={kpis.uncontacted} oldestStaleDays={kpis.oldestStaleDays} />
 
       {/* ── KPI Row ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
         <KpiCard
           label="New Today"
           value={kpis.today}
@@ -243,7 +243,7 @@ export default function SubmissionsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Weekly volume */}
         <ChartCard title="Weekly Volume vs Contacted" subtitle="Last 12 weeks" className="lg:col-span-2">
-          <div className="h-[260px]">
+          <div className="h-[200px] sm:h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weekly} barGap={2}>
                 <XAxis
@@ -271,13 +271,13 @@ export default function SubmissionsDashboard() {
 
         {/* Contacted donut */}
         <ChartCard title="Contacted Ratio">
-          <div className="h-[260px] flex items-center justify-center">
+          <div className="h-[220px] sm:h-[260px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={donutData}
-                  innerRadius={60}
-                  outerRadius={90}
+                  innerRadius={50}
+                  outerRadius={75}
                   paddingAngle={3}
                   dataKey="value"
                   strokeWidth={0}
@@ -313,7 +313,7 @@ export default function SubmissionsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Staleness histogram */}
         <ChartCard title="Staleness Histogram" subtitle="Uncontacted by age">
-          <div className="h-[200px]">
+          <div className="h-[180px] sm:h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={staleness}>
                 <XAxis dataKey="bucket" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={{ stroke: '#242a38' }} tickLine={false} />
@@ -331,7 +331,7 @@ export default function SubmissionsDashboard() {
 
         {/* Email domains */}
         <ChartCard title="Email Domains" subtitle="gmail, yahoo, personal, business">
-          <div className="h-[200px]">
+          <div className="h-[180px] sm:h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={emailDomains} layout="vertical">
                 <XAxis type="number" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -349,7 +349,7 @@ export default function SubmissionsDashboard() {
 
         {/* Warm overlap */}
         <ChartCard title="Warm Overlap" subtitle="Submissions also in…">
-          <div className="h-[200px]">
+          <div className="h-[180px] sm:h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={warmOverlap} layout="vertical">
                 <XAxis type="number" tick={{ fill: '#8a93a6', fontSize: 11 }} axisLine={false} tickLine={false} />

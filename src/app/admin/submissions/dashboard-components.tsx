@@ -98,7 +98,7 @@ export function ThemeBars({ data }: ThemeBarsProps) {
     <div className="space-y-2.5">
       {data.map(({ theme, count }) => (
         <div key={theme} className="flex items-center gap-3">
-          <span className="text-[12px] text-[#8a93a6] w-[130px] truncate shrink-0">{theme}</span>
+          <span className="text-[12px] text-[#8a93a6] w-[90px] sm:w-[130px] truncate shrink-0">{theme}</span>
           <div className="flex-1 h-6 bg-[#0b0d12] rounded-md overflow-hidden relative">
             <div
               className="h-full rounded-md"
@@ -135,7 +135,7 @@ export function DataQualityBars({ data }: DataQualityProps) {
     <div className="space-y-2.5">
       {data.map(({ label, count }) => (
         <div key={label} className="flex items-center gap-3">
-          <span className="text-[12px] text-[#8a93a6] w-[180px] truncate shrink-0">{label}</span>
+          <span className="text-[12px] text-[#8a93a6] w-[110px] sm:w-[180px] truncate shrink-0">{label}</span>
           <div className="flex-1 h-6 bg-[#0b0d12] rounded-md overflow-hidden">
             <div
               className="h-full rounded-md"

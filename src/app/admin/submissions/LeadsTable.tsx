@@ -147,8 +147,47 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
         </span>
       </div>
 
-      {/* ── Table ─────────────────────────────────────────────────── */}
-      <div className="overflow-x-auto">
+      {/* ── Mobile Card View ─────────────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        {paged.length === 0 ? (
+          <div className="text-center text-[#8a93a6] text-sm py-12">No leads match filters</div>
+        ) : (
+          paged.map(sub => (
+            <div
+              key={sub.id}
+              onClick={() => setDrawerSub(sub)}
+              className={`bg-[#0b0d12] border rounded-xl p-4 cursor-pointer active:bg-[#242a38]/40 transition-colors ${sub.contacted ? 'border-[#22c55e]/30' : 'border-[#242a38]'}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] text-white font-medium">{sub.name}</span>
+                  {sub.is_warm && <span className="text-[10px] text-[#22c55e]">● warm</span>}
+                </div>
+                <button
+                  onClick={e => { e.stopPropagation(); onToggleContacted(sub.id, !sub.contacted); }}
+                  className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${sub.contacted ? 'bg-[#22c55e]' : 'bg-[#242a38]'}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${sub.contacted ? 'left-[18px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+              <p className="text-[12px] text-[#8a93a6] mb-1">{sub.business} · {sub.email}</p>
+              <p className="text-[12px] text-white/60 line-clamp-2 leading-snug mb-2">{sub.scaling_challenge || '–'}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-1">
+                  {sub.themes.slice(0, 2).map(t => (
+                    <span key={t} className="text-[10px] bg-[#7c5cff]/15 text-[#7c5cff] px-1.5 py-0.5 rounded-full">{t}</span>
+                  ))}
+                  {sub.themes.length > 2 && <span className="text-[10px] text-[#8a93a6]">+{sub.themes.length - 2}</span>}
+                </div>
+                <span className="text-[11px] text-[#8a93a6]">{relativeTime(sub.created_at)}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ── Desktop Table ─────────────────────────────────────────── */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-[#242a38]">
@@ -228,7 +267,7 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
       {drawerSub && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/60" onClick={() => setDrawerSub(null)} />
-          <div className="relative w-full max-w-lg bg-[#12151d] border-l border-[#242a38] overflow-y-auto p-6">
+          <div className="relative w-full sm:max-w-lg bg-[#12151d] sm:border-l border-[#242a38] overflow-y-auto p-4 sm:p-6">
             <button
               onClick={() => setDrawerSub(null)}
               className="absolute top-4 right-4 text-[#8a93a6] hover:text-white text-lg cursor-pointer"

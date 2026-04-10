@@ -13,7 +13,7 @@ const SubmissionsDashboard = dynamic(() => import('./SubmissionsDashboard'), {
 
 export default function AdminSubmissionsPage() {
   return (
-    <div className="bg-[#0b0d12] -m-5 p-5 min-h-[calc(100vh-120px)] rounded-2xl" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div className="bg-[#0b0d12] -m-5 p-3 sm:p-5 min-h-[calc(100vh-120px)] rounded-2xl" style={{ fontFamily: 'system-ui, sans-serif' }}>
       <SubmissionsDashboard />
     </div>
   );
