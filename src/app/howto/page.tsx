@@ -226,7 +226,7 @@ export default function HowtoPage() {
               All Guides
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {guides.map((guide) => {
+              {[...guides].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((guide) => {
                 const Icon = categoryIcons[guide.category] || BookOpen;
                 return (
                   <div
@@ -253,7 +253,11 @@ export default function HowtoPage() {
                       {guide.description || 'A detailed step-by-step guide.'}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-white/30">{guide.category}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-white/30">{guide.category}</span>
+                        <span className="text-[11px] text-white/25">·</span>
+                        <span className="text-[12px] text-white/30">{new Date(guide.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
                       <button
                         onClick={() => handlePurchase(guide.id)}
                         disabled={guide.status === 'coming-soon'}
