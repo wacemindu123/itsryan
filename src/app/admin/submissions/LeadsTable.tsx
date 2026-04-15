@@ -36,6 +36,8 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
   const [contactedFilter, setContactedFilter] = useState<'all' | 'yes' | 'no'>('all');
   const [warmOnly, setWarmOnly] = useState(false);
   const [drawerSub, setDrawerSub] = useState<SubmissionEnriched | null>(null);
+  const [sendingCalendly, setSendingCalendly] = useState(false);
+  const [calendlyResult, setCalendlyResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const perPage = 20;
 
@@ -155,7 +157,7 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
           paged.map(sub => (
             <div
               key={sub.id}
-              onClick={() => setDrawerSub(sub)}
+              onClick={() => { setDrawerSub(sub); setCalendlyResult(null); }}
               className={`bg-[#0b0d12] border rounded-xl p-4 cursor-pointer active:bg-[#242a38]/40 transition-colors ${sub.contacted ? 'border-[#22c55e]/30' : 'border-[#242a38]'}`}
             >
               <div className="flex items-center justify-between mb-2">
@@ -205,7 +207,7 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
               paged.map(sub => (
                 <tr
                   key={sub.id}
-                  onClick={() => setDrawerSub(sub)}
+                  onClick={() => { setDrawerSub(sub); setCalendlyResult(null); }}
                   className="border-b border-[#242a38]/50 hover:bg-[#242a38]/30 cursor-pointer transition-colors"
                 >
                   <td className="px-3 py-3 text-[12px] text-[#8a93a6] whitespace-nowrap">{relativeTime(sub.created_at)}</td>
@@ -325,6 +327,42 @@ export default function LeadsTable({ submissions, onToggleContacted }: LeadsTabl
               <div className="bg-[#0b0d12] rounded-lg p-4">
                 <p className="text-[14px] text-white/80 leading-relaxed whitespace-pre-wrap">{drawerSub.scaling_challenge}</p>
               </div>
+            </div>
+
+            {/* Send Calendly Invite */}
+            <div className="mb-6">
+              <button
+                disabled={sendingCalendly}
+                onClick={async () => {
+                  setSendingCalendly(true);
+                  setCalendlyResult(null);
+                  try {
+                    const res = await fetch('/api/send-calendly', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: drawerSub.email, name: drawerSub.name }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setCalendlyResult({ ok: true, msg: `Calendly invite sent to ${drawerSub.email}` });
+                    } else {
+                      setCalendlyResult({ ok: false, msg: data.error || 'Failed to send' });
+                    }
+                  } catch {
+                    setCalendlyResult({ ok: false, msg: 'Network error' });
+                  } finally {
+                    setSendingCalendly(false);
+                  }
+                }}
+                className="w-full py-3 bg-[#7c5cff] text-white rounded-xl font-semibold text-[14px] hover:bg-[#7c5cff]/85 disabled:opacity-50 cursor-pointer transition-colors"
+              >
+                {sendingCalendly ? 'Sending…' : '📅 Send Calendly Invite'}
+              </button>
+              {calendlyResult && (
+                <p className={`text-[12px] mt-2 ${calendlyResult.ok ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                  {calendlyResult.msg}
+                </p>
+              )}
             </div>
 
             {/* Actions */}
