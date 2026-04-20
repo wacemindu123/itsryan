@@ -1,5 +1,30 @@
 -- Daily newsletter approval-gated pipeline
 
+-- Ensure base tables exist (safe to run on fresh or partially-provisioned DBs)
+create table if not exists public.newsletter_subscribers (
+  id bigserial primary key,
+  email text not null unique,
+  phone text,
+  name text,
+  subscribed boolean not null default true,
+  unsubscribe_token text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists newsletter_subscribers_subscribed_idx
+  on public.newsletter_subscribers (subscribed);
+
+create table if not exists public.newsletter_drafts (
+  id bigserial primary key,
+  subject text not null,
+  content text not null,
+  sms_content text,
+  status text not null default 'draft',
+  approved_at timestamptz,
+  sent_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- Extend newsletter_drafts to support daily issues + approval tokens + audit fields
 alter table if exists public.newsletter_drafts
   add column if not exists issue_date date,
