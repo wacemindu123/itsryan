@@ -3,15 +3,7 @@ import { Resend } from 'resend';
 import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { requireCronAuth } from '@/lib/newsletter-approval';
-
-function sanitizeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
-}
+import { renderNewsletterEmailHtml } from '@/lib/newsletter-email-template';
 
 function generateUnsubscribeToken(email: string): string {
   const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret-change-me';
@@ -22,56 +14,17 @@ function generateUnsubscribeToken(email: string): string {
 }
 
 function generateEmailHtml(subject: string, content: string, email: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai';
   const unsubscribeToken = generateUnsubscribeToken(email);
-  const unsubscribeUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai'}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
+  const unsubscribeUrl = `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff;">
-    <tr>
-      <td style="padding: 40px 20px;">
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; margin: 0 auto;">
-          <tr>
-            <td style="padding-bottom: 24px; border-bottom: 1px solid #d2d2d7;">
-              <span style="font-size: 17px; font-weight: 600; color: #1d1d1f; letter-spacing: -0.02em;">ItsRyan.ai</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 32px 0 16px 0;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #1d1d1f; letter-spacing: -0.02em; line-height: 1.2;">${subject}</h1>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-bottom: 32px;">
-              <div style="font-size: 16px; line-height: 1.6; color: #1d1d1f;">
-                ${sanitizeHtml(content).replace(/\n/g, '<br>')}
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-top: 24px; border-top: 1px solid #d2d2d7;">
-              <p style="margin: 0 0 8px 0; font-size: 13px; color: #6e6e73; line-height: 1.5;">
-                You're receiving this because you subscribed to the ItsRyan.ai newsletter.
-              </p>
-              <p style="margin: 0; font-size: 13px; color: #6e6e73;">
-                <a href="${unsubscribeUrl}" style="color: #6e6e73; text-decoration: underline;">Unsubscribe</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `.trim();
+  return renderNewsletterEmailHtml({
+    kind: 'subscriber',
+    subject,
+    content,
+    siteUrl,
+    unsubscribeUrl,
+  });
 }
 
 export async function POST(request: NextRequest) {

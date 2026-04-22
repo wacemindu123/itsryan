@@ -4,6 +4,11 @@ import OpenAI from 'openai';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { renderNewsletterPreviewEmailHtml } from '@/lib/newsletter-preview-email';
 import {
+  NEWSLETTER_SYSTEM_PROMPT,
+  buildDailyUserPrompt,
+  NEWSLETTER_FALLBACK_SUBJECT,
+} from '@/lib/newsletter-prompt';
+import {
   formatIssueDateET,
   randomNonce,
   sha256Hex,
@@ -41,8 +46,10 @@ export async function POST(request: NextRequest) {
   }
 
   const issueDate = formatIssueDateET(new Date());
+  const url = new URL(request.url);
+  const force = url.searchParams.get('force') === '1';
 
-  // Idempotency: if draft already exists for today, do not create a new one.
+  // Idempotency: if draft already exists for today, do not create a new one (unless force=1).
   const { data: existingDraft, error: existingErr } = await supabase
     .from('newsletter_drafts')
     .select('*')
@@ -53,7 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to check existing draft' }, { status: 500 });
   }
 
-  if (existingDraft) {
+  if (existingDraft && !force) {
     return NextResponse.json({
       success: true,
       message: 'Draft already exists for today',
@@ -62,34 +69,32 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  if (existingDraft && force) {
+    // Don't delete if already sent — avoid breaking audit/send logs.
+    if (existingDraft.sent_at) {
+      return NextResponse.json({
+        error: 'Today\'s draft has already been sent; cannot regenerate',
+        draftId: existingDraft.id,
+      }, { status: 400 });
+    }
+    await supabase.from('newsletter_drafts').delete().eq('id', existingDraft.id);
+  }
+
   const openai = new OpenAI({ apiKey: openaiKey });
 
-  // v1: reuse existing prompt style for now; we can swap to Exa + skill pack next.
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
-      {
-        role: 'system',
-        content:
-          `You are Ryan. Write a DAILY newsletter for SMB operators and casual builders. ` +
-          `Keep it practical and concrete. 500–700 words. Avoid hype. ` +
-          `End with a short question that encourages replies. ` +
-          `Start with a subject line in the format: "Subject: ...".`,
-      },
-      {
-        role: 'user',
-        content:
-          `Write today's daily AI newsletter for ${issueDate}. ` +
-          `Keep it fresh and timely. Include 2-3 practical tips and one copy/paste prompt.`,
-      },
+      { role: 'system', content: NEWSLETTER_SYSTEM_PROMPT },
+      { role: 'user', content: buildDailyUserPrompt() },
     ],
-    temperature: 0.7,
+    temperature: 0.8,
     max_tokens: 1200,
   });
 
   const full = completion.choices[0]?.message?.content || '';
   const subjectMatch = full.match(/Subject:\s*(.+?)(?:\n|$)/i);
-  const subject = subjectMatch ? subjectMatch[1].trim() : `Daily AI Newsletter — ${issueDate}`;
+  const subject = subjectMatch ? subjectMatch[1].trim() : NEWSLETTER_FALLBACK_SUBJECT;
   const content = full.replace(/Subject:\s*.+?\n/i, '').trim();
 
   const approveNonce = randomNonce();

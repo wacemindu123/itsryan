@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { renderNewsletterPreviewEmailHtml } from '@/lib/newsletter-preview-email';
 import { verifyActionToken, sha256Hex, randomNonce, signActionToken } from '@/lib/newsletter-approval';
+import { NEWSLETTER_SYSTEM_PROMPT, buildRegenerateUserPrompt } from '@/lib/newsletter-prompt';
 
 export async function POST(request: NextRequest) {
   const approvalSecret = process.env.NEWSLETTER_APPROVAL_SECRET;
@@ -94,22 +95,10 @@ export async function POST(request: NextRequest) {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        {
-          role: 'system',
-          content:
-            `You are Ryan. Rewrite a DAILY newsletter draft based on the feedback provided. ` +
-            `Keep it practical and concrete. 500–700 words. Avoid hype. ` +
-            `Start with a subject line in the format: "Subject: ...".`,
-        },
-        {
-          role: 'user',
-          content:
-            `Here is the previous draft:\n\n${draft.content}\n\n` +
-            `Feedback to apply:\n${feedback}\n\n` +
-            `Return a complete revised draft.`
-        },
+        { role: 'system', content: NEWSLETTER_SYSTEM_PROMPT },
+        { role: 'user', content: buildRegenerateUserPrompt(draft.content, feedback) },
       ],
-      temperature: 0.6,
+      temperature: 0.7,
       max_tokens: 1200,
     });
 
