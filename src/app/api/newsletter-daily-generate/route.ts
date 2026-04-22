@@ -7,7 +7,9 @@ import {
   NEWSLETTER_SYSTEM_PROMPT,
   buildDailyUserPrompt,
   NEWSLETTER_FALLBACK_SUBJECT,
+  NEWSLETTER_SKIP_MARKER,
 } from '@/lib/newsletter-prompt';
+import { fetchNewsPack, renderNewsPackForPrompt } from '@/lib/news-fetcher';
 import {
   formatIssueDateET,
   randomNonce,
@@ -80,27 +82,69 @@ export async function POST(request: NextRequest) {
     await supabase.from('newsletter_drafts').delete().eq('id', existingDraft.id);
   }
 
+  // Pull URLs + titles from last 3 drafts for dedup against recently covered stories.
+  const { data: recentDrafts } = await supabase
+    .from('newsletter_drafts')
+    .select('subject, generation_context')
+    .order('id', { ascending: false })
+    .limit(3);
+
+  const recentUrls: string[] = [];
+  const recentTitles: string[] = [];
+  for (const d of recentDrafts || []) {
+    if (d.subject) recentTitles.push(d.subject);
+    const ctx = d.generation_context as { pack?: { items?: Array<{ url?: string; title?: string }> } } | null;
+    const items = ctx?.pack?.items || [];
+    for (const it of items) {
+      if (it.url) recentUrls.push(it.url);
+      if (it.title) recentTitles.push(it.title);
+    }
+  }
+
+  // Fetch the news pack (core architectural requirement).
+  const pack = await fetchNewsPack({ recentUrls, recentTitles, topN: 10 });
+
   const openai = new OpenAI({ apiKey: openaiKey });
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       { role: 'system', content: NEWSLETTER_SYSTEM_PROMPT },
-      { role: 'user', content: buildDailyUserPrompt() },
+      { role: 'user', content: buildDailyUserPrompt(renderNewsPackForPrompt(pack)) },
     ],
-    temperature: 0.8,
-    max_tokens: 1200,
+    temperature: 0.7,
+    max_tokens: 1400,
   });
 
   const full = completion.choices[0]?.message?.content || '';
   const subjectMatch = full.match(/Subject:\s*(.+?)(?:\n|$)/i);
-  const subject = subjectMatch ? subjectMatch[1].trim() : NEWSLETTER_FALLBACK_SUBJECT;
+  const rawSubject = subjectMatch ? subjectMatch[1].trim() : NEWSLETTER_FALLBACK_SUBJECT;
   const content = full.replace(/Subject:\s*.+?\n/i, '').trim();
+
+  // Skip protocol: LLM returned "Subject: (skip)" or no usable pack.
+  const isSkip = rawSubject.toLowerCase().includes(NEWSLETTER_SKIP_MARKER) || pack.items.length === 0;
+  const subject = isSkip ? `${NEWSLETTER_SKIP_MARKER} no stories today` : rawSubject;
 
   const approveNonce = randomNonce();
   const changesNonce = randomNonce();
 
-  // Insert draft first to get draft id, then compute tokens properly
+  // Persist pack + model info for audit + future dedup.
+  const generationContext = {
+    model: 'gpt-4o-mini',
+    issue_date: issueDate,
+    pack: {
+      fetchedAt: pack.fetchedAt,
+      rawCount: pack.rawCount,
+      sourcesUsed: pack.sourcesUsed,
+      items: pack.items.map((it) => ({
+        title: it.title,
+        url: it.url,
+        source: it.source,
+        publishedAt: it.publishedAt,
+      })),
+    },
+  };
+
   const { data: inserted, error: insertErr } = await supabase
     .from('newsletter_drafts')
     .insert([
@@ -108,10 +152,10 @@ export async function POST(request: NextRequest) {
         issue_date: issueDate,
         subject,
         content,
-        status: 'draft',
+        status: isSkip ? 'skipped' : 'draft',
         approval_nonce_hash: sha256Hex(approveNonce),
         changes_nonce_hash: sha256Hex(changesNonce),
-        generation_context: { model: 'gpt-4o-mini', issue_date: issueDate },
+        generation_context: generationContext,
       },
     ])
     .select('*')
@@ -123,6 +167,18 @@ export async function POST(request: NextRequest) {
   }
 
   const draftId = inserted.id as number;
+
+  // Skip protocol: no preview email sent; admin can see the skipped draft in dashboard.
+  if (isSkip) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: pack.items.length === 0 ? 'no-stories-in-pack' : 'llm-returned-skip',
+      issueDate,
+      draftId,
+      sourcesUsed: pack.sourcesUsed,
+    });
+  }
 
   const approveTokenFinal = signActionToken({
     draftId,

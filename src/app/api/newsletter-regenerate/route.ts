@@ -4,7 +4,8 @@ import OpenAI from 'openai';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { renderNewsletterPreviewEmailHtml } from '@/lib/newsletter-preview-email';
 import { verifyActionToken, sha256Hex, randomNonce, signActionToken } from '@/lib/newsletter-approval';
-import { NEWSLETTER_SYSTEM_PROMPT, buildRegenerateUserPrompt } from '@/lib/newsletter-prompt';
+import { NEWSLETTER_SYSTEM_PROMPT, buildRegenerateUserPrompt, NEWSLETTER_SKIP_MARKER } from '@/lib/newsletter-prompt';
+import { fetchNewsPack, renderNewsPackForPrompt, type NewsPack } from '@/lib/news-fetcher';
 
 export async function POST(request: NextRequest) {
   const approvalSecret = process.env.NEWSLETTER_APPROVAL_SECRET;
@@ -90,22 +91,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This link has already been used' }, { status: 400 });
     }
 
+    // Reuse the news pack stored on the draft; refetch if missing (legacy drafts).
+    const existingCtx = draft.generation_context as {
+      pack?: NewsPack & { items?: Array<{ title?: string; url?: string; source?: string; publishedAt?: string }> };
+    } | null;
+    let pack: NewsPack;
+    if (existingCtx?.pack?.items && existingCtx.pack.items.length > 0) {
+      pack = {
+        items: existingCtx.pack.items.map((it) => ({
+          title: it.title || '',
+          url: it.url || '',
+          source: it.source || '',
+          publishedAt: it.publishedAt || new Date().toISOString(),
+          excerpt: '',
+          score: 0,
+        })),
+        rawCount: existingCtx.pack.rawCount || existingCtx.pack.items.length,
+        fetchedAt: existingCtx.pack.fetchedAt || new Date().toISOString(),
+        sourcesUsed: existingCtx.pack.sourcesUsed || [],
+      };
+    } else {
+      pack = await fetchNewsPack({ topN: 10 });
+    }
+
     const openai = new OpenAI({ apiKey: openaiKey });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: NEWSLETTER_SYSTEM_PROMPT },
-        { role: 'user', content: buildRegenerateUserPrompt(draft.content, feedback) },
+        { role: 'user', content: buildRegenerateUserPrompt(draft.content, feedback, renderNewsPackForPrompt(pack)) },
       ],
       temperature: 0.7,
-      max_tokens: 1200,
+      max_tokens: 1400,
     });
 
     const full = completion.choices[0]?.message?.content || '';
     const subjectMatch = full.match(/Subject:\s*(.+?)(?:\n|$)/i);
-    const subject = subjectMatch ? subjectMatch[1].trim() : draft.subject;
+    const rawSubject = subjectMatch ? subjectMatch[1].trim() : draft.subject;
     const content = full.replace(/Subject:\s*.+?\n/i, '').trim();
+    const isSkip = rawSubject.toLowerCase().includes(NEWSLETTER_SKIP_MARKER);
+    const subject = isSkip ? `${NEWSLETTER_SKIP_MARKER} no stories today` : rawSubject;
 
     // New single-use tokens for the revised draft
     const approveNonce = randomNonce();
@@ -127,12 +153,28 @@ export async function POST(request: NextRequest) {
     const approveUrl = `${siteUrl}/api/newsletter-approve?draftId=${draftId}&nonce=${approveNonce}&token=${approveTokenFinal}`;
     const changesUrl = `${siteUrl}/newsletter/feedback?draftId=${draftId}&nonce=${changesNonce}&token=${changesTokenFinal}`;
 
+    const updatedContext = {
+      ...((existingCtx as object) || {}),
+      pack: {
+        fetchedAt: pack.fetchedAt,
+        rawCount: pack.rawCount,
+        sourcesUsed: pack.sourcesUsed,
+        items: pack.items.map((it) => ({
+          title: it.title,
+          url: it.url,
+          source: it.source,
+          publishedAt: it.publishedAt,
+        })),
+      },
+      last_feedback: feedback,
+    };
+
     const { error: updateErr } = await supabase
       .from('newsletter_drafts')
       .update({
         subject,
         content,
-        status: 'draft',
+        status: isSkip ? 'skipped' : 'draft',
         approval_nonce_hash: sha256Hex(approveNonce),
         approval_used_at: null,
         send_started_at: null,
@@ -140,11 +182,16 @@ export async function POST(request: NextRequest) {
         changes_nonce_hash: sha256Hex(changesNonce),
         changes_used_at: null,
         regeneration_count: (draft.regeneration_count || 0) + 1,
+        generation_context: updatedContext,
       })
       .eq('id', draftId);
 
     if (updateErr) {
       return NextResponse.json({ error: 'Failed to save regenerated draft' }, { status: 500 });
+    }
+
+    if (isSkip) {
+      return NextResponse.json({ success: true, skipped: true, reason: 'llm-returned-skip' });
     }
 
     const resend = new Resend(apiKey);
