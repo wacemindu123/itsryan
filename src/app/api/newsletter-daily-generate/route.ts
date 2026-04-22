@@ -113,7 +113,8 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (insertErr) {
-    return NextResponse.json({ error: 'Failed to save draft' }, { status: 500 });
+    console.error('newsletter-daily-generate insert error:', insertErr);
+    return NextResponse.json({ error: 'Failed to save draft', detail: insertErr.message, code: insertErr.code }, { status: 500 });
   }
 
   const draftId = inserted.id as number;
