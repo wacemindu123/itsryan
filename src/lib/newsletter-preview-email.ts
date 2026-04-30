@@ -6,6 +6,7 @@ export function renderNewsletterPreviewEmailHtml(params: {
   content: string;
   approveUrl: string;
   changesUrl: string;
+  previewText?: string;
 }): string {
   return renderNewsletterEmailHtml({
     kind: 'preview',
@@ -15,6 +16,7 @@ export function renderNewsletterPreviewEmailHtml(params: {
     approveUrl: params.approveUrl,
     changesUrl: params.changesUrl,
     draftId: params.draftId,
+    previewText: params.previewText,
   });
 }
 

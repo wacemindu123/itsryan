@@ -123,13 +123,18 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: buildRegenerateUserPrompt(draft.content, feedback, renderNewsPackForPrompt(pack)) },
       ],
       temperature: 0.7,
-      max_tokens: 1400,
+      max_tokens: 2400,
     });
 
     const full = completion.choices[0]?.message?.content || '';
     const subjectMatch = full.match(/Subject:\s*(.+?)(?:\n|$)/i);
     const rawSubject = subjectMatch ? subjectMatch[1].trim() : draft.subject;
-    const content = full.replace(/Subject:\s*.+?\n/i, '').trim();
+    const previewMatch = full.match(/Preview:\s*(.+?)(?:\n|$)/i);
+    const previewText = previewMatch ? previewMatch[1].trim() : '';
+    const content = full
+      .replace(/Subject:\s*.+?\n/i, '')
+      .replace(/Preview:\s*.+?\n/i, '')
+      .trim();
     const isSkip = rawSubject.toLowerCase().includes(NEWSLETTER_SKIP_MARKER);
     const subject = isSkip ? `${NEWSLETTER_SKIP_MARKER} no stories today` : rawSubject;
 
@@ -155,6 +160,7 @@ export async function POST(request: NextRequest) {
 
     const updatedContext = {
       ...((existingCtx as object) || {}),
+      preview_text: previewText,
       pack: {
         fetchedAt: pack.fetchedAt,
         rawCount: pack.rawCount,
@@ -201,6 +207,7 @@ export async function POST(request: NextRequest) {
       content,
       approveUrl,
       changesUrl,
+      previewText,
     });
 
     const { error: sendErr } = await resend.emails.send({

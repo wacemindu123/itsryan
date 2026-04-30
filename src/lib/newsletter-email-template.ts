@@ -106,6 +106,7 @@ export interface NewsletterEmailOptions {
   approveUrl?: string;
   changesUrl?: string;
   draftId?: number;
+  previewText?: string;
 }
 
 export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string {
@@ -113,7 +114,10 @@ export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string 
   const body = renderMarkdownish(opts.content);
   const siteLabel = opts.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const preheader = escapeHtml(
-    opts.content.replace(/[#>*_\-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 120)
+    (opts.previewText && opts.previewText.trim()
+      ? opts.previewText
+      : opts.content.replace(/[#>*_\-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 120)
+    )
   );
 
   const previewBar = opts.kind === 'preview'

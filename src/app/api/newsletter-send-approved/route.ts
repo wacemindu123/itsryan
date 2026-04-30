@@ -13,7 +13,7 @@ function generateUnsubscribeToken(email: string): string {
     .digest('hex');
 }
 
-function generateEmailHtml(subject: string, content: string, email: string): string {
+function generateEmailHtml(subject: string, content: string, email: string, previewText?: string): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai';
   const unsubscribeToken = generateUnsubscribeToken(email);
   const unsubscribeUrl = `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
@@ -24,6 +24,7 @@ function generateEmailHtml(subject: string, content: string, email: string): str
     content,
     siteUrl,
     unsubscribeUrl,
+    previewText,
   });
 }
 
@@ -93,9 +94,12 @@ export async function POST(request: NextRequest) {
     let failed = 0;
     const errors: string[] = [];
 
+    const ctx = draft.generation_context as { preview_text?: string } | null;
+    const previewText = ctx?.preview_text || undefined;
+
     for (const s of subscribers) {
       try {
-        const html = generateEmailHtml(draft.subject, draft.content, s.email);
+        const html = generateEmailHtml(draft.subject, draft.content, s.email, previewText);
         const { data, error } = await resend.emails.send({
           from: fromEmail,
           to: s.email,
