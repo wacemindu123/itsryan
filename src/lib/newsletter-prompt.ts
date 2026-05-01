@@ -74,29 +74,53 @@ Shape:
 - Sentence 1: what happened, plain English, with the [link](url) from the pack.
 - Sentence 2: why it actually matters — the second-order effect, not the announcement.
 - Paragraph 2 (2–3 sentences): the SMB-specific implication. Who should care, who shouldn't.
+- ONE pull quote, emitted as a fenced block (use exactly this format):
+
+  \`\`\`pullquote
+  The single sharpest, truest sentence in this section.
+  \`\`\`
+
+  Pick the line that, if a stranger only read this one sentence, would tell them what the issue is about. Place it after paragraph 2.
 - A line that begins with **What to do this week:** then one concrete action.
 
 ## Workflow of the Week
 A step-by-step the reader can copy in under 30 minutes. Only include this section if the pack contains enough information to write real, specific steps with named tools and a real link. Otherwise omit.
 
-Shape:
-- **Goal:** one sentence.
-- **Time:** realistic range in minutes.
-- **Tools:** named tools, each as a link from the pack.
+Start this section with a fenced **spec strip** (use exactly this format — the renderer styles it as a 3-column strip):
+
+\`\`\`spec
+For: who, specifically ("solo bookkeepers," not "businesses")
+Cost: $X/mo or "free with limits"
+Stack: comma-separated named tools
+\`\`\`
+
+Then:
 - **Why this matters:** 2 sentences, before/after in human terms.
-- **Steps:** numbered, 4–6 steps, each one specific (a button to click, a menu to open).
+- A numbered list of 3–5 steps. Each step names a button, menu, or specific action. The renderer turns numbered list items into accent-circle steps, so DO use a real \`1. \` \`2. \` \`3. \` markdown numbered list — do not write the steps as a paragraph or bullet list.
 - **Catch:** the one thing that will trip them up.
 
 Do not write a step like "configure the integration" — be specific or omit the section.
 
 ## Tool Spotlight: <Name>
 One tool from the pack, reviewed honestly. Only include if the pack has a real tool with enough information.
-- **What it is:** one sentence, no buzzwords.
-- **Best for:** who SPECIFICALLY ("solo consultants who write a lot of proposals," not "businesses").
-- **Pricing:** only if the pack states pricing. Otherwise say "free tier available" or skip the line.
-- Paragraph on what it does well, in concrete terms.
-- Paragraph on where it falls down — REQUIRED if you include this section.
-- **Verdict:** one line.
+
+Open with one sentence: what it is, no buzzwords.
+
+Then the **4-Question Filter scorecard** as a fenced block (use exactly this format — the renderer styles it as the persistent scorecard motif):
+
+\`\`\`filter
+Who is it for: <named SMB type>
+What does it cost: <real tier from the pack>
+What does it replace: <concrete before-state, with a number if possible>
+What's the catch: <the honest catch — every tool has one>
+\`\`\`
+
+If you can't answer all four from the pack, OMIT the section entirely. Don't ship a half-filled scorecard.
+
+Then:
+- One paragraph on what it does well in concrete terms.
+- One paragraph on where it falls down — REQUIRED.
+- A line beginning with **Verdict —** then a one-line call ("Worth a free trial if X" or "Skip unless you already use Y").
 
 ## Prompt of the Week
 - **Use it for:** one specific task.
@@ -113,7 +137,17 @@ The prompt itself is your craft and does not need to come from the pack. The use
 If the pack has fewer than 3 items suitable for this section, omit the section entirely. Never invent items.
 
 ## SMB Win  (omit unless the pack contains a real verified case study)
-If — and only if — the pack contains a verified SMB case study with a real business, real tools, and a real numeric result: write 2–3 sentences with **Who / Stack / Result** as bold inline labels. If not, omit this section silently.
+If — and only if — the pack contains a verified SMB case study with a real named business, real tools, and a real numeric result, render it as a fenced **win card** block (the renderer styles it as the warm-yellow win card motif). Use exactly this format:
+
+\`\`\`win
+Business: <named business + city, e.g. "Cedar Lane Dental, Tulsa">
+Headline: <one-line summary of what they did>
+Metric: <the headline number, e.g. "2.1 hrs → 23 min/day">
+Body: <2–3 sentences on how they did it, with named tools>
+Quote: <one short verbatim quote from the source — only if the pack contains it; omit the line if not>
+\`\`\`
+
+If the pack does NOT contain a verified case study with a real business name and a real number, OMIT this section silently. Do not invent. Do not anonymize a fake one.
 
 ## Sign-off
 Short. ONE CTA. Sign as Ryan.
