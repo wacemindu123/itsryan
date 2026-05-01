@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
   const resend = new Resend(apiKey);
 
   try {
-    const { draftId } = await request.json();
+    const body = await request.json();
+    const draftId = body?.draftId;
+    const testEmail: string | undefined = typeof body?.testEmail === 'string' ? body.testEmail.trim() : undefined;
+    const isTestSend = !!testEmail;
 
     if (!draftId) {
       return NextResponse.json({ error: 'draftId is required' }, { status: 400 });
@@ -69,29 +72,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
-    if (draft.sent_at) {
-      return NextResponse.json({ success: true, message: 'Already sent' });
+    // For real (blast) sends we enforce the approval + idempotency guards.
+    // Test sends bypass them so you can self-test without altering draft state.
+    if (!isTestSend) {
+      if (draft.sent_at) {
+        return NextResponse.json({ success: true, message: 'Already sent' });
+      }
+      if (!draft.send_started_at) {
+        return NextResponse.json({ error: 'Draft not approved' }, { status: 400 });
+      }
     }
 
-    if (!draft.send_started_at) {
-      return NextResponse.json({ error: 'Draft not approved' }, { status: 400 });
-    }
-
-    // Fetch active subscribers
-    const { data: subscribers, error: subErr } = await supabase
-      .from('newsletter_subscribers')
-      .select('email')
-      .eq('subscribed', true);
-
-    if (subErr) throw subErr;
-
-    if (!subscribers || subscribers.length === 0) {
-      await supabase
-        .from('newsletter_drafts')
-        .update({ status: 'skipped' })
-        .eq('id', draftId);
-
-      return NextResponse.json({ error: 'No active subscribers' }, { status: 400 });
+    // Build the recipient list: either a single test address or all active subscribers.
+    let subscribers: { email: string }[];
+    if (isTestSend) {
+      subscribers = [{ email: testEmail! }];
+    } else {
+      const { data, error: subErr } = await supabase
+        .from('newsletter_subscribers')
+        .select('email')
+        .eq('subscribed', true);
+      if (subErr) throw subErr;
+      if (!data || data.length === 0) {
+        await supabase.from('newsletter_drafts').update({ status: 'skipped' }).eq('id', draftId);
+        return NextResponse.json({ error: 'No active subscribers' }, { status: 400 });
+      }
+      subscribers = data;
     }
 
     let sent = 0;
@@ -110,7 +116,7 @@ export async function POST(request: NextRequest) {
         const { data, error } = await resend.emails.send({
           from: fromEmail,
           to: s.email,
-          subject: draft.subject,
+          subject: isTestSend ? `[TEST] ${draft.subject}` : draft.subject,
           html,
           replyTo,
           headers: {
@@ -142,16 +148,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await supabase
-      .from('newsletter_drafts')
-      .update({
-        status: 'sent',
-        sent_at: new Date().toISOString(),
-      })
-      .eq('id', draftId);
+    if (!isTestSend) {
+      await supabase
+        .from('newsletter_drafts')
+        .update({
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+        })
+        .eq('id', draftId);
+    }
 
     return NextResponse.json({
       success: true,
+      testMode: isTestSend,
       results: {
         total: subscribers.length,
         sent,
