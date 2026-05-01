@@ -3,7 +3,16 @@ import { Resend } from 'resend';
 import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { requireCronAuth } from '@/lib/newsletter-approval';
+import { requireAdmin } from '@/lib/auth';
 import { renderNewsletterEmailHtml } from '@/lib/newsletter-email-template';
+
+// Bulk sends can exceed the default 10s serverless timeout.
+// 300s is the Vercel Pro ceiling; Hobby caps at 60s but still helps.
+export const maxDuration = 300;
+export const dynamic = 'force-dynamic';
+
+// Chunk size for parallel sends. 20 is conservative for Resend's default rate limits.
+const SEND_CHUNK_SIZE = 20;
 
 function generateUnsubscribeToken(email: string): string {
   const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret-change-me';
@@ -32,8 +41,11 @@ function generateEmailHtml(subject: string, content: string, unsubscribeUrl: str
 }
 
 export async function POST(request: NextRequest) {
-  const denied = requireCronAuth(request);
-  if (denied) return denied;
+  const cronDenied = requireCronAuth(request);
+  if (cronDenied) {
+    const adminDenied = await requireAdmin();
+    if (adminDenied) return cronDenied;
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.NEWSLETTER_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
@@ -108,43 +120,63 @@ export async function POST(request: NextRequest) {
     const previewText = ctx?.preview_text || undefined;
 
     const listUnsubMailto = process.env.NEWSLETTER_UNSUB_MAILTO || replyTo;
+    const listId = `<newsletter.${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai').hostname}>`;
 
-    for (const s of subscribers) {
+    // Send one subscriber. Returns a log-row shape the caller can batch-insert.
+    async function sendOne(email: string): Promise<{
+      to_email: string;
+      status: 'sent' | 'failed';
+      resend_message_id: string | null;
+      error: string | null;
+    }> {
       try {
-        const unsubscribeUrl = buildUnsubscribeUrl(s.email);
+        const unsubscribeUrl = buildUnsubscribeUrl(email);
         const html = generateEmailHtml(draft.subject, draft.content, unsubscribeUrl, previewText);
         const { data, error } = await resend.emails.send({
           from: fromEmail,
-          to: s.email,
+          to: email,
           subject: isTestSend ? `[TEST] ${draft.subject}` : draft.subject,
           html,
           replyTo,
           headers: {
             'List-Unsubscribe': `<mailto:${listUnsubMailto}?subject=unsubscribe>, <${unsubscribeUrl}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-            'List-Id': `<newsletter.${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai').hostname}>`,
+            'List-Id': listId,
           },
         });
-
         if (error) {
-          failed++;
-          errors.push(`${s.email}: ${error.message}`);
-          await supabase.from('newsletter_send_logs').insert([
-            { draft_id: draftId, to_email: s.email, status: 'failed', error: error.message },
-          ]);
-        } else {
-          sent++;
-          await supabase.from('newsletter_send_logs').insert([
-            { draft_id: draftId, to_email: s.email, status: 'sent', resend_message_id: data?.id || null },
-          ]);
+          return { to_email: email, status: 'failed', resend_message_id: null, error: error.message };
         }
+        return { to_email: email, status: 'sent', resend_message_id: data?.id || null, error: null };
       } catch (err) {
-        failed++;
         const msg = err instanceof Error ? err.message : 'Unknown error';
-        errors.push(`${s.email}: ${msg}`);
-        await supabase.from('newsletter_send_logs').insert([
-          { draft_id: draftId, to_email: s.email, status: 'failed', error: msg },
-        ]);
+        return { to_email: email, status: 'failed', resend_message_id: null, error: msg };
+      }
+    }
+
+    // Chunked parallel sends. Keeps wall-time in check without hammering Resend.
+    for (let i = 0; i < subscribers.length; i += SEND_CHUNK_SIZE) {
+      const chunk = subscribers.slice(i, i + SEND_CHUNK_SIZE);
+      const results = await Promise.all(chunk.map((s) => sendOne(s.email)));
+
+      const rows = results.map((r) => ({
+        draft_id: draftId,
+        to_email: r.to_email,
+        status: r.status,
+        resend_message_id: r.resend_message_id,
+        error: r.error,
+      }));
+
+      // Bulk-insert this chunk's logs in one round-trip.
+      await supabase.from('newsletter_send_logs').insert(rows);
+
+      for (const r of results) {
+        if (r.status === 'sent') {
+          sent++;
+        } else {
+          failed++;
+          if (errors.length < 20) errors.push(`${r.to_email}: ${r.error ?? 'unknown'}`);
+        }
       }
     }
 
