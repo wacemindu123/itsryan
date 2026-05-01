@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.NEWSLETTER_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const replyTo = process.env.NEWSLETTER_REPLY_TO || 'ryan@itsryan.ai';
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
           to: subscriber.email,
           subject: subject,
           html: html,
-          replyTo: fromEmail,
+          replyTo,
         });
 
         if (error) {

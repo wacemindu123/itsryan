@@ -13,11 +13,14 @@ function generateUnsubscribeToken(email: string): string {
     .digest('hex');
 }
 
-function generateEmailHtml(subject: string, content: string, email: string, previewText?: string): string {
+function buildUnsubscribeUrl(email: string): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai';
   const unsubscribeToken = generateUnsubscribeToken(email);
-  const unsubscribeUrl = `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
+  return `${siteUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
+}
 
+function generateEmailHtml(subject: string, content: string, unsubscribeUrl: string, previewText?: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai';
   return renderNewsletterEmailHtml({
     kind: 'subscriber',
     subject,
@@ -34,6 +37,7 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.NEWSLETTER_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const replyTo = process.env.NEWSLETTER_REPLY_TO || 'ryan@itsryan.ai';
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
@@ -97,15 +101,23 @@ export async function POST(request: NextRequest) {
     const ctx = draft.generation_context as { preview_text?: string } | null;
     const previewText = ctx?.preview_text || undefined;
 
+    const listUnsubMailto = process.env.NEWSLETTER_UNSUB_MAILTO || replyTo;
+
     for (const s of subscribers) {
       try {
-        const html = generateEmailHtml(draft.subject, draft.content, s.email, previewText);
+        const unsubscribeUrl = buildUnsubscribeUrl(s.email);
+        const html = generateEmailHtml(draft.subject, draft.content, unsubscribeUrl, previewText);
         const { data, error } = await resend.emails.send({
           from: fromEmail,
           to: s.email,
           subject: draft.subject,
           html,
-          replyTo: fromEmail,
+          replyTo,
+          headers: {
+            'List-Unsubscribe': `<mailto:${listUnsubMailto}?subject=unsubscribe>, <${unsubscribeUrl}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            'List-Id': `<newsletter.${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://itsryan.ai').hostname}>`,
+          },
         });
 
         if (error) {
