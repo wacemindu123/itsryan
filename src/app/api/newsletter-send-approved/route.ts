@@ -11,8 +11,14 @@ import { renderNewsletterEmailHtml } from '@/lib/newsletter-email-template';
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
-// Chunk size for parallel sends. 20 is conservative for Resend's default rate limits.
-const SEND_CHUNK_SIZE = 20;
+// Resend free tier caps at 5 requests per second.
+// Chunk of 4 + 1100ms delay keeps us safely under.
+const SEND_CHUNK_SIZE = 4;
+const CHUNK_DELAY_MS = 1100;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 function generateUnsubscribeToken(email: string): string {
   const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret-change-me';
@@ -69,6 +75,7 @@ export async function POST(request: NextRequest) {
     const draftId = body?.draftId;
     const testEmail: string | undefined = typeof body?.testEmail === 'string' ? body.testEmail.trim() : undefined;
     const isTestSend = !!testEmail;
+    const retry = body?.retry === true;
 
     if (!draftId) {
       return NextResponse.json({ error: 'draftId is required' }, { status: 400 });
@@ -84,10 +91,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
-    // For real (blast) sends we enforce the approval + idempotency guards.
-    // Test sends bypass them so you can self-test without altering draft state.
+    // For real (blast) sends we enforce approval + idempotency guards.
+    // Test sends bypass. retry=true bypasses sent_at so we can resume failed blasts.
     if (!isTestSend) {
-      if (draft.sent_at) {
+      if (draft.sent_at && !retry) {
         return NextResponse.json({ success: true, message: 'Already sent' });
       }
       if (!draft.send_started_at) {
@@ -109,7 +116,23 @@ export async function POST(request: NextRequest) {
         await supabase.from('newsletter_drafts').update({ status: 'skipped' }).eq('id', draftId);
         return NextResponse.json({ error: 'No active subscribers' }, { status: 400 });
       }
-      subscribers = data;
+
+      // Dedupe against anyone already logged as 'sent' for this draft so retries don't double-send.
+      const { data: alreadySent } = await supabase
+        .from('newsletter_send_logs')
+        .select('to_email')
+        .eq('draft_id', draftId)
+        .eq('status', 'sent');
+      const sentSet = new Set((alreadySent ?? []).map((r: { to_email: string }) => r.to_email.toLowerCase()));
+      subscribers = data.filter((s) => !sentSet.has(s.email.toLowerCase()));
+
+      if (subscribers.length === 0) {
+        return NextResponse.json({
+          success: true,
+          message: 'All subscribers already sent — nothing to do',
+          results: { total: 0, sent: 0, failed: 0, errors: [] },
+        });
+      }
     }
 
     let sent = 0;
@@ -154,8 +177,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Chunked parallel sends. Keeps wall-time in check without hammering Resend.
+    // Chunked parallel sends with throttle to respect Resend's 5 req/sec free tier.
     for (let i = 0; i < subscribers.length; i += SEND_CHUNK_SIZE) {
+      if (i > 0) await sleep(CHUNK_DELAY_MS);
       const chunk = subscribers.slice(i, i + SEND_CHUNK_SIZE);
       const results = await Promise.all(chunk.map((s) => sendOne(s.email)));
 
