@@ -3,6 +3,7 @@
 // monochrome with a single warm accent for links + buttons.
 // Email-safe: inline styles, table-based layout.
 
+const NEWSLETTER_NAME = 'Anti-gatekeeping AI newsletter';
 const ACCENT = '#d24d1f';            // warm accent (links, accent rule)
 const INK = '#0b0d12';               // primary text / headings
 const BODY = '#1d1d1f';              // body copy
@@ -228,8 +229,8 @@ export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string 
       </tr>
       <tr>
         <td style="padding:20px 0 4px 0;">
-          <a href="${opts.approveUrl}" style="display:inline-block; padding:13px 22px; background:${INK}; color:#ffffff; border-radius:999px; font-weight:600; font-size:14px; text-decoration:none; margin-right:8px;">Approve &amp; Send</a>
-          <a href="${opts.changesUrl}" style="display:inline-block; padding:13px 22px; background:${CARD_BG}; color:${INK}; border:1px solid ${INK}; border-radius:999px; font-weight:600; font-size:14px; text-decoration:none;">Request Changes</a>
+          <a class="nl-btn nl-btn-primary" href="${opts.approveUrl}" style="display:inline-block; padding:13px 22px; background:${INK}; color:#ffffff; border-radius:999px; font-weight:600; font-size:14px; text-decoration:none; margin-right:8px;">Approve &amp; Send</a>
+          <a class="nl-btn nl-btn-secondary" href="${opts.changesUrl}" style="display:inline-block; padding:13px 22px; background:${CARD_BG}; color:${INK}; border:1px solid ${INK}; border-radius:999px; font-weight:600; font-size:14px; text-decoration:none;">Request Changes</a>
           <p style="margin:14px 0 0 0; font-size:12px; color:${MUTED}; line-height:1.5;">Nothing sends unless you click Approve. Links are single-use.</p>
         </td>
       </tr>
@@ -256,23 +257,38 @@ export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string 
   <meta name="color-scheme" content="light only">
   <meta name="supported-color-schemes" content="light">
   <title>${safeSubject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .nl-outer { padding: 20px 0 28px 0 !important; }
+      .nl-card { border-radius: 0 !important; box-shadow: none !important; }
+      .nl-pad { padding-left: 22px !important; padding-right: 22px !important; padding-top: 28px !important; }
+      .nl-pad-top { padding: 20px 22px 0 22px !important; }
+      .nl-pad-body { padding: 22px 22px 12px 22px !important; }
+      .nl-pad-footer { padding: 24px 22px 32px 22px !important; }
+      .nl-h1 { font-size: 26px !important; line-height: 1.22 !important; margin-bottom: 22px !important; letter-spacing: -0.025em !important; }
+      .nl-h2 { font-size: 20px !important; }
+      .nl-today { display: block !important; margin-top: 6px !important; text-align: left !important; }
+      .nl-btn { display: block !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; margin: 0 0 10px 0 !important; }
+      .nl-btn-primary { margin-right: 0 !important; }
+    }
+  </style>
 </head>
 <body style="margin:0; padding:0; background:${PAGE_BG}; font-family:'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, 'Times New Roman', serif; -webkit-font-smoothing:antialiased; color:${BODY};">
   <div style="display:none; overflow:hidden; line-height:1px; opacity:0; max-height:0; max-width:0;">${preheader}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAGE_BG};">
     <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px; width:100%; background:${CARD_BG}; border-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 12px 32px rgba(11,13,18,0.06);">
+      <td class="nl-outer" align="center" style="padding:48px 16px 56px 16px;">
+        <table class="nl-card" role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px; width:100%; background:${CARD_BG}; border-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 12px 32px rgba(11,13,18,0.06);">
 
           <!-- Masthead -->
           <tr>
-            <td style="padding:36px 48px 0 48px;">
+            <td class="nl-pad" style="padding:36px 48px 0 48px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
                     <a href="${opts.siteUrl}" style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; font-size:18px; font-weight:700; color:${INK}; text-decoration:none; letter-spacing:-0.025em;">itsryan.ai</a>
                   </td>
-                  <td align="right" style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; color:${MUTED}; letter-spacing:0.08em; text-transform:uppercase;">${todayLabel}</td>
+                  <td class="nl-today" align="right" style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; color:${MUTED}; letter-spacing:0.08em; text-transform:uppercase;">${todayLabel}</td>
                 </tr>
               </table>
               <div style="margin-top:24px; height:1px; background:${RULE};"></div>
@@ -282,15 +298,16 @@ export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string 
           <!-- Preview bar (preview kind only) -->
           ${opts.kind === 'preview' ? `
           <tr>
-            <td style="padding:24px 48px 0 48px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;">
+            <td class="nl-pad-top" style="padding:24px 48px 0 48px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;">
               ${previewBar}
             </td>
           </tr>` : ''}
 
           <!-- Subject + body -->
           <tr>
-            <td style="padding:${opts.kind === 'preview' ? '32px' : '44px'} 48px 16px 48px;">
-              <h1 style="margin:0 0 28px 0; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; font-size:32px; font-weight:700; color:${INK}; line-height:1.18; letter-spacing:-0.035em;">${safeSubject}</h1>
+            <td class="nl-pad-body" style="padding:${opts.kind === 'preview' ? '32px' : '44px'} 48px 16px 48px;">
+              <p style="margin:0 0 10px 0; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:${ACCENT};">${escapeHtml(NEWSLETTER_NAME)}</p>
+              <h1 class="nl-h1" style="margin:0 0 28px 0; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; font-size:32px; font-weight:700; color:${INK}; line-height:1.18; letter-spacing:-0.035em;">${safeSubject}</h1>
               <div style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 ${body}
               </div>
@@ -299,7 +316,7 @@ export function renderNewsletterEmailHtml(opts: NewsletterEmailOptions): string 
 
           <!-- Footer CTA -->
           <tr>
-            <td style="padding:32px 48px 44px 48px;">
+            <td class="nl-pad-footer" style="padding:32px 48px 44px 48px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;">
                 <tr>
                   <td style="padding:24px 0 0 0; border-top:1px solid ${RULE};">
