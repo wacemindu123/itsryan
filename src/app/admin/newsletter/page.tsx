@@ -177,6 +177,12 @@ export default function AdminNewsletterPage() {
           >
             Compose Newsletter
           </button>
+          <Link
+            href="/admin/newsletter/send"
+            className="px-5 py-2.5 rounded-full text-sm font-medium transition-all bg-white text-[var(--text-primary)] hover:bg-gray-50"
+          >
+            Send History →
+          </Link>
         </div>
 
         {/* Subscribers Tab */}

@@ -17,6 +17,7 @@ interface SendLog {
 interface Draft {
   id: number;
   subject: string;
+  content: string;
   status: string;
   sent_at: string | null;
   send_started_at: string | null;
@@ -32,7 +33,7 @@ async function loadReceipt(draftId: number): Promise<{ draft: Draft | null; logs
   }
 
   const [draftRes, logsRes] = await Promise.all([
-    supabase.from('newsletter_drafts').select('id, subject, status, sent_at, send_started_at, created_at').eq('id', draftId).single(),
+    supabase.from('newsletter_drafts').select('id, subject, content, status, sent_at, send_started_at, created_at').eq('id', draftId).single(),
     supabase.from('newsletter_send_logs').select('*').eq('draft_id', draftId).order('created_at', { ascending: false }),
   ]);
 
@@ -55,12 +56,10 @@ export default async function NewsletterSendReceiptPage({
 
   if (!draft) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-5xl mx-auto">
-          <Link href="/admin/newsletter" className="text-sm text-gray-600 hover:text-gray-900">← Back to Newsletter</Link>
-          <div className="mt-6 bg-white rounded-lg p-8 text-gray-700">
-            Draft <strong>#{draftId}</strong> not found, or the database is not configured.
-          </div>
+      <div className="space-y-4">
+        <Link href="/admin/newsletter/send" className="text-sm text-gray-500 hover:text-gray-900">← All Drafts</Link>
+        <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-600">
+          Draft <strong>#{draftId}</strong> not found.
         </div>
       </div>
     );
@@ -71,160 +70,187 @@ export default async function NewsletterSendReceiptPage({
   const total = logs.length;
   const successRate = total > 0 ? Math.round((sentCount / total) * 100) : 0;
 
-  const failures = logs.filter((l) => l.status === 'failed');
+  // Dedupe failures by email — show only the latest attempt per address
+  const failureMap = new Map<string, SendLog>();
+  for (const l of logs) {
+    if (l.status === 'failed' && !failureMap.has(l.to_email)) {
+      failureMap.set(l.to_email, l);
+    }
+  }
+  // Exclude failures where a later attempt succeeded
+  const sentEmails = new Set(logs.filter((l) => l.status === 'sent').map((l) => l.to_email));
+  const uniqueFailures = [...failureMap.values()].filter((l) => !sentEmails.has(l.to_email));
+
+  // Group errors by message for a summary view
+  const errorGroups: Record<string, string[]> = {};
+  for (const f of uniqueFailures) {
+    const key = f.error || 'Unknown error';
+    if (!errorGroups[key]) errorGroups[key] = [];
+    errorGroups[key].push(f.to_email);
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <Link href="/admin/newsletter" className="text-sm text-gray-600 hover:text-gray-900">← Back to Newsletter</Link>
+    <div className="space-y-6">
+      {/* Nav */}
+      <div className="flex items-center gap-3 text-sm text-gray-500">
+        <Link href="/admin/newsletter/send" className="hover:text-gray-900 transition-colors">All Drafts</Link>
+        <span>/</span>
+        <span className="text-gray-900 font-medium">#{draft.id}</span>
+      </div>
 
-        <div className="mt-4 flex items-baseline justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Send Receipt</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Draft #{draft.id} — <span className="font-medium text-gray-800">{draft.subject}</span>
-            </p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-gray-900 truncate">{draft.subject}</h1>
+            <StatusPill status={draft.status} sentAt={draft.sent_at} />
           </div>
-          <StatusBadge status={draft.status} sentAt={draft.sent_at} />
+          <p className="text-sm text-gray-500 mt-1">Draft #{draft.id}</p>
         </div>
+      </div>
 
-        {/* Summary cards */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <Card label="Sent" value={sentCount.toLocaleString()} tone="good" />
-          <Card label="Failed" value={failedCount.toLocaleString()} tone={failedCount > 0 ? 'bad' : 'neutral'} />
-          <Card label="Total attempts" value={total.toLocaleString()} tone="neutral" />
-          <Card label="Success rate" value={total > 0 ? `${successRate}%` : '—'} tone={successRate >= 95 ? 'good' : successRate >= 80 ? 'neutral' : 'bad'} />
-        </div>
+      {/* Big stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard label="Delivered" value={sentCount} color="green" />
+        <StatCard label="Failed" value={uniqueFailures.length} color={uniqueFailures.length > 0 ? 'red' : 'gray'} />
+        <StatCard label="Total Attempts" value={total} color="gray" />
+        <StatCard
+          label="Success Rate"
+          value={total > 0 ? `${successRate}%` : '—'}
+          color={successRate >= 95 ? 'green' : successRate >= 80 ? 'gray' : 'red'}
+        />
+      </div>
 
-        {/* Timing */}
-        <div className="mt-6 bg-white rounded-lg p-5 text-sm text-gray-700 border border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Field label="Created" value={fmt(draft.created_at)} />
-            <Field label="Send started" value={fmt(draft.send_started_at)} />
-            <Field label="Completed" value={fmt(draft.sent_at)} />
+      {/* Progress bar */}
+      {total > 0 && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+            <span>Delivery progress</span>
+            <span>{sentCount} of {sentCount + uniqueFailures.length} recipients</span>
+          </div>
+          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 rounded-full transition-all"
+              style={{ width: `${(sentCount / Math.max(sentCount + uniqueFailures.length, 1)) * 100}%` }}
+            />
           </div>
         </div>
+      )}
 
-        {/* Failures */}
-        {failures.length > 0 && (
-          <div className="mt-6 bg-white rounded-lg border border-red-200 overflow-hidden">
-            <div className="px-5 py-3 bg-red-50 border-b border-red-200 text-sm font-semibold text-red-900">
-              Failures ({failures.length})
-            </div>
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-gray-500 bg-gray-50">
-                <tr>
-                  <th className="px-5 py-2">Email</th>
-                  <th className="px-5 py-2">Error</th>
-                  <th className="px-5 py-2">When</th>
-                </tr>
-              </thead>
-              <tbody>
-                {failures.map((l) => (
-                  <tr key={l.id} className="border-t border-gray-100 align-top">
-                    <td className="px-5 py-3 font-mono text-xs text-gray-900">{l.to_email}</td>
-                    <td className="px-5 py-3 text-xs text-red-800 whitespace-pre-wrap break-words">{l.error || '(no message)'}</td>
-                    <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{fmt(l.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* All attempts */}
-        <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-900 flex items-center justify-between">
-            <span>All send attempts ({total})</span>
-            <span className="text-xs text-gray-500 font-normal">Newest first</span>
-          </div>
-          {total === 0 ? (
-            <div className="px-5 py-8 text-sm text-gray-500 text-center">
-              No send logs for this draft yet. If you&apos;ve already clicked Approve &amp; Send, check that the send endpoint completed without an error.
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-gray-500 bg-white border-b border-gray-200">
-                <tr>
-                  <th className="px-5 py-2">Status</th>
-                  <th className="px-5 py-2">Email</th>
-                  <th className="px-5 py-2">Resend ID</th>
-                  <th className="px-5 py-2">When</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((l) => (
-                  <tr key={l.id} className="border-t border-gray-100">
-                    <td className="px-5 py-2">
-                      <span
-                        className={
-                          l.status === 'sent'
-                            ? 'inline-flex items-center rounded-full bg-green-50 text-green-700 px-2 py-0.5 text-xs font-medium'
-                            : 'inline-flex items-center rounded-full bg-red-50 text-red-700 px-2 py-0.5 text-xs font-medium'
-                        }
-                      >
-                        {l.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-2 font-mono text-xs text-gray-900">{l.to_email}</td>
-                    <td className="px-5 py-2 font-mono text-[11px] text-gray-500">{l.resend_message_id || '—'}</td>
-                    <td className="px-5 py-2 text-xs text-gray-500 whitespace-nowrap">{fmt(l.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+      {/* Timeline */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Timeline</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <TimelineItem label="Created" date={draft.created_at} />
+          <TimelineItem label="Approved" date={draft.send_started_at} />
+          <TimelineItem label="Completed" date={draft.sent_at} />
         </div>
+      </div>
 
-        <p className="mt-4 text-xs text-gray-500">
-          Resend dashboard: <a href="https://resend.com/emails" target="_blank" rel="noopener noreferrer" className="underline">resend.com/emails</a> — filter by Message ID for deep diagnostics (bounce reason, inbox placement).
-        </p>
+      {/* Error summary — grouped by error type */}
+      {uniqueFailures.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-red-100">
+          <div className="px-5 py-4 bg-red-50 border-b border-red-100">
+            <h2 className="text-sm font-semibold text-red-900">
+              {uniqueFailures.length} Permanent Failure{uniqueFailures.length !== 1 ? 's' : ''}
+            </h2>
+            <p className="text-xs text-red-700 mt-0.5">Emails that failed and were not successfully retried</p>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {Object.entries(errorGroups).map(([error, emails]) => (
+              <div key={error} className="px-5 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-red-800 truncate">{error}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {emails.slice(0, 10).map((email) => (
+                        <span key={email} className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-mono text-red-700 border border-red-100">
+                          {email}
+                        </span>
+                      ))}
+                      {emails.length > 10 && (
+                        <span className="inline-flex items-center px-2 py-0.5 text-xs text-red-500">
+                          +{emails.length - 10} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-red-700">{emails.length}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* No errors state */}
+      {uniqueFailures.length === 0 && total > 0 && (
+        <div className="bg-green-50 rounded-2xl p-5 text-center border border-green-100">
+          <p className="text-sm font-medium text-green-800">All emails delivered successfully</p>
+        </div>
+      )}
+
+      {/* Resend link */}
+      <p className="text-xs text-gray-400 text-center">
+        Deep diagnostics available at{' '}
+        <a href="https://resend.com/emails" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+          resend.com/emails
+        </a>
+      </p>
+    </div>
+  );
+}
+
+// ── Components ───────────────────────────────────────────────────────
+
+function StatCard({ label, value, color }: { label: string; value: number | string; color: 'green' | 'red' | 'gray' }) {
+  const valueColor = color === 'green' ? 'text-green-600' : color === 'red' ? 'text-red-600' : 'text-gray-900';
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="text-xs font-medium uppercase tracking-wider text-gray-400">{label}</div>
+      <div className={`mt-1 text-3xl font-semibold ${valueColor}`}>{typeof value === 'number' ? value.toLocaleString() : value}</div>
+    </div>
+  );
+}
+
+function TimelineItem({ label, date }: { label: string; date: string | null }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className={`mt-1 w-2.5 h-2.5 rounded-full shrink-0 ${date ? 'bg-green-500' : 'bg-gray-200'}`} />
+      <div>
+        <div className="text-xs font-medium uppercase tracking-wider text-gray-400">{label}</div>
+        <div className={`text-sm mt-0.5 ${date ? 'text-gray-900' : 'text-gray-400'}`}>{fmtFull(date)}</div>
       </div>
     </div>
   );
 }
 
-// ── Presentational helpers ────────────────────────────────────────────
-
-function Card({ label, value, tone }: { label: string; value: string; tone: 'good' | 'bad' | 'neutral' }) {
-  const toneClass =
-    tone === 'good' ? 'text-green-700' : tone === 'bad' ? 'text-red-700' : 'text-gray-900';
-  return (
-    <div className="bg-white rounded-lg p-5 border border-gray-200">
-      <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{label}</div>
-      <div className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</div>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{label}</div>
-      <div className="mt-1 text-gray-900">{value}</div>
-    </div>
-  );
-}
-
-function StatusBadge({ status, sentAt }: { status: string; sentAt: string | null }) {
+function StatusPill({ status, sentAt }: { status: string; sentAt: string | null }) {
   const label = sentAt ? 'Sent' : status;
-  const tone =
+  const cls =
     label === 'Sent' || status === 'sent'
       ? 'bg-green-50 text-green-700 border-green-200'
       : status === 'skipped'
-      ? 'bg-gray-100 text-gray-700 border-gray-200'
-      : 'bg-amber-50 text-amber-800 border-amber-200';
+      ? 'bg-gray-100 text-gray-600 border-gray-200'
+      : 'bg-amber-50 text-amber-700 border-amber-200';
   return (
-    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${tone}`}>
+    <span className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${cls}`}>
       {label}
     </span>
   );
 }
 
-function fmt(iso: string | null | undefined): string {
-  if (!iso) return '—';
+function fmtFull(iso: string | null | undefined): string {
+  if (!iso) return 'Pending';
   try {
-    return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York' });
+    return new Date(iso).toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   } catch {
     return iso;
   }

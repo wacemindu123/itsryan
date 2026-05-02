@@ -70,7 +70,7 @@ export default function AdminLayout({
               key={tab.href}
               href={tab.href}
               className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                pathname === tab.href
+                pathname === tab.href || pathname.startsWith(tab.href + '/')
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
