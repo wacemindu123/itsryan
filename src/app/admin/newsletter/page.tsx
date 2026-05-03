@@ -13,13 +13,14 @@ interface NewsletterSubscriber {
   name: string | null;
   subscribed: boolean;
   created_at: string;
+  unsubscribed_at: string | null;
 }
 
 export default function AdminNewsletterPage() {
   const { isSignedIn, isLoaded } = useUser();
   
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
-  const [activeTab, setActiveTab] = useState<'subscribers' | 'compose'>('subscribers');
+  const [activeTab, setActiveTab] = useState<'subscribers' | 'unsubscribed' | 'compose'>('subscribers');
   
   // Compose state
   const [subject, setSubject] = useState('');
@@ -99,6 +100,7 @@ export default function AdminNewsletterPage() {
 
   const activeSubscribers = subscribers.filter(s => s.subscribed);
   const inactiveSubscribers = subscribers.filter(s => !s.subscribed);
+  const unsubscribedUsers = subscribers.filter(s => !s.subscribed && s.unsubscribed_at);
 
   if (!isLoaded) {
     return (
@@ -140,7 +142,7 @@ export default function AdminNewsletterPage() {
 
       <div className="max-w-[1200px] mx-auto px-5 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
             <div className="text-4xl font-semibold text-[var(--text-primary)] mb-1">{subscribers.length}</div>
             <div className="text-sm text-[var(--text-secondary)]">Total Subscribers</div>
@@ -152,6 +154,10 @@ export default function AdminNewsletterPage() {
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
             <div className="text-4xl font-semibold text-[var(--text-secondary)] mb-1">{inactiveSubscribers.length}</div>
             <div className="text-sm text-[var(--text-secondary)]">Inactive</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
+            <div className="text-4xl font-semibold text-red-500 mb-1">{unsubscribedUsers.length}</div>
+            <div className="text-sm text-[var(--text-secondary)]">Unsubscribed</div>
           </div>
         </div>
 
@@ -166,6 +172,16 @@ export default function AdminNewsletterPage() {
             }`}
           >
             Subscribers
+          </button>
+          <button
+            onClick={() => setActiveTab('unsubscribed')}
+            className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'unsubscribed'
+                ? 'bg-[var(--accent)] text-white'
+                : 'bg-white text-[var(--text-primary)] hover:bg-gray-50'
+            }`}
+          >
+            Unsubscribed{unsubscribedUsers.length > 0 ? ` (${unsubscribedUsers.length})` : ''}
           </button>
           <button
             onClick={() => setActiveTab('compose')}
@@ -235,6 +251,46 @@ export default function AdminNewsletterPage() {
                         >
                           {sub.subscribed ? 'Deactivate' : 'Reactivate'}
                         </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Unsubscribed Tab */}
+        {activeTab === 'unsubscribed' && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[#d2d2d7]">
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Email</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Name</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Subscribed On</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--text-secondary)]">Unsubscribed On</th>
+                </tr>
+              </thead>
+              <tbody>
+                {unsubscribedUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-[var(--text-secondary)]">
+                      No one has unsubscribed yet
+                    </td>
+                  </tr>
+                ) : (
+                  unsubscribedUsers
+                    .sort((a, b) => new Date(b.unsubscribed_at!).getTime() - new Date(a.unsubscribed_at!).getTime())
+                    .map((sub) => (
+                    <tr key={sub.id} className="border-b border-[#d2d2d7] last:border-none hover:bg-[#f5f5f7] transition-colors">
+                      <td className="p-4 text-sm text-[var(--text-primary)]">{sub.email}</td>
+                      <td className="p-4 text-sm text-[var(--text-secondary)]">{sub.name || '—'}</td>
+                      <td className="p-4 text-sm text-[var(--text-secondary)]">
+                        {new Date(sub.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-sm text-red-500 font-medium">
+                        {sub.unsubscribed_at ? new Date(sub.unsubscribed_at).toLocaleDateString() : '—'}
                       </td>
                     </tr>
                   ))

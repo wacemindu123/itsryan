@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
           phone: phone || null, 
           name: name || null,
           unsubscribe_token: unsubscribeToken,
+          unsubscribed_at: null,
         })
         .eq('id', existing.id);
 

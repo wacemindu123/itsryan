@@ -31,10 +31,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid unsubscribe link' }, { status: 400 });
     }
 
-    // Update subscriber status
+    // Update subscriber status and record when they unsubscribed
     const { error } = await supabase
       .from('newsletter_subscribers')
-      .update({ subscribed: false })
+      .update({ subscribed: false, unsubscribed_at: new Date().toISOString() })
       .eq('email', email.toLowerCase());
 
     if (error) throw error;
